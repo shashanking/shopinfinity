@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
-import '../models/delivery_address.dart';
-import '../providers/address_provider.dart';
+import '../../profile/providers/address_provider.dart';
 
 class AddAddressOverlay extends ConsumerStatefulWidget {
-  final DeliveryAddress? address;
-
-  const AddAddressOverlay({super.key, this.address});
+  const AddAddressOverlay({super.key});
 
   @override
   ConsumerState<AddAddressOverlay> createState() => _AddAddressOverlayState();
@@ -25,14 +21,11 @@ class _AddAddressOverlayState extends ConsumerState<AddAddressOverlay> {
   @override
   void initState() {
     super.initState();
-    _landmarkController = TextEditingController(text: widget.address?.landmark);
-    _addressController = TextEditingController(text: widget.address?.address);
-    _cityController = TextEditingController(text: widget.address?.city);
-    _stateController = TextEditingController(text: widget.address?.state);
-    _pincodeController = TextEditingController(text: widget.address?.pincode);
-    if (widget.address != null) {
-      _selectedLabel = widget.address!.label;
-    }
+    _landmarkController = TextEditingController();
+    _addressController = TextEditingController();
+    _cityController = TextEditingController();
+    _stateController = TextEditingController();
+    _pincodeController = TextEditingController();
   }
 
   @override
@@ -45,25 +38,39 @@ class _AddAddressOverlayState extends ConsumerState<AddAddressOverlay> {
     super.dispose();
   }
 
-  void _saveAddress() {
+  void _saveAddress() async {
     if (_formKey.currentState!.validate()) {
-      final address = DeliveryAddress(
-        id: widget.address?.id ?? const Uuid().v4(),
-        landmark: _landmarkController.text,
-        address: _addressController.text,
-        city: _cityController.text,
-        state: _stateController.text,
-        pincode: _pincodeController.text,
-        label: _selectedLabel,
-      );
-
-      if (widget.address != null) {
-        ref.read(addressProvider.notifier).updateAddress(address);
-      } else {
-        ref.read(addressProvider.notifier).addAddress(address);
+      try {
+        await ref.read(addressProvider.notifier).addAddress(
+              addressLine1: _addressController.text,
+              addressLine2: '',
+              landmark: _landmarkController.text,
+              city: _cityController.text,
+              state1: _stateController.text,
+              pincode: _pincodeController.text,
+              addressName: _selectedLabel,
+              primaryAddress: _selectedLabel == 'primary',
+            );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Address added successfully'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
-
-      Navigator.pop(context);
     }
   }
 

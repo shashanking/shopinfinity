@@ -13,7 +13,6 @@ import '../../search/screens/search_screen.dart';
 import '../../categories/screens/categories_screen.dart';
 import '../../categories/screens/category_products_screen.dart';
 import '../../product/screens/product_details_screen.dart';
-import '../../categories/models/category_product.dart';
 import '../../cart/screens/cart_screen.dart';
 import '../../shop/screens/shop_screen.dart';
 
@@ -137,10 +136,10 @@ List<RouteBase> authRoutes = [
     },
   ),
   GoRoute(
-    path: '/product',
+    path: '/product/:id',
     builder: (context, state) {
-      final product = state.extra as CategoryProduct;
-      return ProductDetailsScreen(product: product);
+      final id = state.pathParameters['id']!;
+      return ProductDetailsScreen(id: id);
     },
   ),
 ];

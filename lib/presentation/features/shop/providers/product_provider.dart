@@ -1,100 +1,102 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopinfinity/core/models/product/product.dart';
-import 'package:shopinfinity/core/network/api_exception.dart';
-import 'package:shopinfinity/core/services/product_service.dart';
 import 'package:shopinfinity/core/providers/providers.dart';
-import 'dart:developer' as dev;
+import 'package:shopinfinity/core/services/product_service.dart';
 
-final productListProvider = StateNotifierProvider<ProductListNotifier, AsyncValue<ProductListResponse>>((ref) {
-  final productService = ref.watch(productServiceProvider);
-  dev.log('Creating product list notifier', name: 'ProductProvider');
+final productListProvider =
+    StateNotifierProvider<ProductListNotifier, ProductListResponse>((ref) {
+  final productService = ref.read(productServiceProvider);
   return ProductListNotifier(productService);
 });
 
-class ProductListNotifier extends StateNotifier<AsyncValue<ProductListResponse>> {
+class ProductListNotifier extends StateNotifier<ProductListResponse> {
   final ProductService _productService;
+  int _currentPage = 0;
+  bool _isLoading = false;
   String? _currentCategory;
   String? _currentSubCategory;
   String? _searchQuery;
   String _sortBy = 'createdAt';
   String _sortDirection = 'DESC';
-  int _currentPage = 1;
-  bool _hasMorePages = true;
 
-  ProductListNotifier(this._productService) : super(const AsyncValue.loading()) {
-    loadProducts();
-  }
+  ProductListNotifier(this._productService)
+      : super(const ProductListResponse(
+          content: [],
+          totalPages: 0,
+          totalElements: 0,
+          isLastPage: true,
+          pageNumber: 0,
+          pageSize: 0,
+        ));
 
-  Future<void> loadProducts({bool refresh = false}) async {
-    if (refresh) {
-      _currentPage = 1;
-      _hasMorePages = true;
-    }
+  Future<void> loadProducts() async {
+    if (_isLoading || state.isLastPage) return;
 
-    if (!_hasMorePages && !refresh) return;
-
+    _isLoading = true;
     try {
-      state = const AsyncValue.loading();
-      
-      final products = await _productService.listProducts(
+      final response = await _productService.listProducts(
         pageNo: _currentPage,
         category: _currentCategory,
         subCategory: _currentSubCategory,
         sortDirection: _sortDirection,
+
       );
 
-      _hasMorePages = products.content.length >= products.perPage;
-      
-      if (!refresh && state.hasValue) {
-        // Append new products to existing list
-        final currentProducts = state.value!;
-        final updatedProducts = ProductListResponse(
-          perPage: products.perPage,
-          pageNo: products.pageNo,
-          sortBy: products.sortBy,
-          sortDirection: products.sortDirection,
-          content: [...currentProducts.content, ...products.content],
-          count: products.count,
-        );
-        state = AsyncValue.data(updatedProducts);
+      if (_currentPage == 0) {
+        state = response;
       } else {
-        state = AsyncValue.data(products);
+        state = ProductListResponse(
+          content: [...state.content, ...response.content],
+          totalPages: response.totalPages,
+          totalElements: response.totalElements,
+          isLastPage: response.isLastPage,
+          pageNumber: response.pageNumber,
+          pageSize: response.pageSize,
+        );
       }
 
       _currentPage++;
-    } on ApiException catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+    } catch (e) {
+      // Handle error
+    } finally {
+      _isLoading = false;
     }
   }
 
   void setCategory(String? category) {
     if (_currentCategory == category) return;
     _currentCategory = category;
-    loadProducts(refresh: true);
+    reset();
   }
 
   void setSubCategory(String? subCategory) {
     if (_currentSubCategory == subCategory) return;
     _currentSubCategory = subCategory;
-    loadProducts(refresh: true);
+    reset();
   }
 
   void setSearchQuery(String? query) {
     if (_searchQuery == query) return;
     _searchQuery = query;
-    loadProducts(refresh: true);
+    reset();
   }
 
   void setSortBy(String sortBy, String direction) {
     if (_sortBy == sortBy && _sortDirection == direction) return;
     _sortBy = sortBy;
     _sortDirection = direction;
-    loadProducts(refresh: true);
+    reset();
   }
 
-  void refreshProducts() {
-    loadProducts(refresh: true);
+  void reset() {
+    _currentPage = 0;
+    state = const ProductListResponse(
+      content: [],
+      totalPages: 0,
+      totalElements: 0,
+      isLastPage: true,
+      pageNumber: 0,
+      pageSize: 0,
+    );
   }
-
-  bool get canLoadMore => _hasMorePages;
 }

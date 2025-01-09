@@ -1,18 +1,109 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shopinfinity/presentation/features/search/overlays/filter_overlay.dart';
+import '../../../../core/models/product/product.dart';
+import '../../../../core/utils/product_mapper.dart';
 import '../widgets/recent_search_chip.dart';
 import '../../../shared/widgets/product_card.dart';
 import '../../product/widgets/product_details_overlay.dart';
-import '../../categories/models/category_product.dart';
-import '../overlays/filter_overlay.dart'; // Add this import
+import '../providers/search_provider.dart';
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends ConsumerStatefulWidget {
   final String? initialQuery;
 
   const SearchScreen({super.key, this.initialQuery});
 
   @override
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends ConsumerState<SearchScreen> {
+  late final TextEditingController _searchController;
+  Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(text: widget.initialQuery);
+    if (widget.initialQuery != null) {
+      _search(widget.initialQuery!);
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _search(String query) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      print('Searching for: $query'); // Debug print
+      ref.read(searchProvider.notifier).search(query);
+    });
+  }
+
+  Widget _buildSearchResults(List<Product> products) {
+    if (products.isEmpty) {
+      return const Center(
+        child: Text(
+          'No products found',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey,
+          ),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        final variety = product.varieties.first;
+
+        return ProductCard(
+          isCardSmall: true,
+          id: product.id,
+          name: product.name,
+          price: variety.discountPrice,
+          originalPrice: variety.price,
+          imageUrl: variety.imageUrls.first,
+          discount: variety.discountPercent.round(),
+          unit: '${variety.value}${variety.unit}',
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => ProductDetailsOverlay(
+                product: mapToUiProduct(product),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = ref.watch(searchProvider);
+    print(
+        'Current search results: ${state.searchResults.length}'); // Debug print
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -40,8 +131,9 @@ class SearchScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
-                      controller: TextEditingController(text: initialQuery),
+                      controller: _searchController,
                       autofocus: true,
+                      onChanged: _search,
                       decoration: InputDecoration(
                         hintText: 'Search "Bread"',
                         hintStyle: const TextStyle(
@@ -63,6 +155,15 @@ class SearchScreen extends StatelessWidget {
                           Icons.search,
                           color: Color(0xFF8891A5),
                         ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  _search('');
+                                },
+                              )
+                            : null,
                       ),
                     ),
                   ),
@@ -92,103 +193,118 @@ class SearchScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Recent Searches',
+            if (_searchController.text.isEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Recent Searches',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Lato',
+                            color: Color(0xFF1E222B),
+                          ),
+                        ),
+                        if (state.recentSearches.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              ref
+                                  .read(searchProvider.notifier)
+                                  .clearRecentSearches();
+                            },
+                            child: const Text(
+                              'Clear All',
+                              style: TextStyle(
+                                color: Color(0xFF53B175),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: state.recentSearches
+                          .map(
+                            (search) => RecentSearchChip(
+                              label: search,
+                              onTap: () {
+                                _searchController.text = search;
+                                _search(search);
+                              },
+                              onDelete: () {
+                                ref
+                                    .read(searchProvider.notifier)
+                                    .removeRecentSearch(search);
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (_searchController.text.isNotEmpty && !state.isLoading) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Showing Results for "${_searchController.text}"',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Lato',
+                        color: Color(0xFF1E222B),
+                      ),
+                    ),
+                    Text(
+                      '${state.searchResults.length} items',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: 'Lato',
+                        color: Color(0xFF8891A5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            if (state.isLoading)
+              const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (_searchController.text.isNotEmpty &&
+                state.searchResults.isEmpty)
+              const Expanded(
+                child: Center(
+                  child: Text(
+                    'No results found',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: 'Lato',
-                      color: Color(0xFF1E222B),
+                      color: Color(0xFF8891A5),
                     ),
                   ),
-                  SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      RecentSearchChip(label: 'Cat Food'),
-                      RecentSearchChip(label: 'Cat Food'),
-                      RecentSearchChip(label: 'Cat Food'),
-                      RecentSearchChip(label: 'Cat Food'),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Showing Results for Product Name',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          fontFamily: 'Lato',
-                          color: Color(0xFF1E222B),
-                        ),
-                      ),
-                      Text(
-                        '246 items',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          fontFamily: 'Lato',
-                          color: Color(0xFF8891A5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.72,
                 ),
-                itemCount: 6,
-                itemBuilder: (context, index) {
-                  final product = CategoryProduct(
-                    imageUrl: 'assets/images/tomato.png',
-                    name: 'Desi Tomato\n(Nattu Thakkali)',
-                    price: 42,
-                    originalPrice: 58,
-                    unit: '1kg',
-                    discount: '20% OFF',
-                    id: index.toString(),
-                    category: 'Vegetables',
-                    subCategory: 'Fresh Vegetables',
-                  );
-                  return ProductCard(
-                    imageUrl: product.imageUrl,
-                    name: product.name,
-                    price: product.price,
-                    originalPrice: product.originalPrice!,
-                    unit: product.unit,
-                    discount: int.parse(
-                      product.discount?.replaceAll(RegExp(r'[^0-9]'), '') ?? '0',
-                    ),
-                    id: product.id,
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => ProductDetailsOverlay(product: product),
-                      );
-                    },
-                  );
-                },
+              )
+            else if (_searchController.text.isNotEmpty)
+              Expanded(
+                child: _buildSearchResults(state.searchResults),
               ),
-            ),
           ],
         ),
       ),

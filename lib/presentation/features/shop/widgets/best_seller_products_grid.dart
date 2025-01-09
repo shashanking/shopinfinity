@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shopinfinity/presentation/features/shop/providers/best_seller_products_provider.dart';
-
+import 'package:go_router/go_router.dart';
+import '../../../../core/utils/product_mapper.dart';
 import '../../../shared/widgets/product_card.dart';
-import '../../categories/models/category_product.dart';
 import '../../product/widgets/product_details_overlay.dart';
+import '../providers/best_seller_products_provider.dart';
 
 class BestSellerProductsGrid extends ConsumerWidget {
   const BestSellerProductsGrid({super.key});
@@ -15,8 +15,7 @@ class BestSellerProductsGrid extends ConsumerWidget {
 
     return bestSellerProductsState.when(
       data: (productResponse) {
-        if (productResponse == null || 
-            productResponse.content.isEmpty) {
+        if (productResponse == null || productResponse.content.isEmpty) {
           return const Center(child: Text('No best seller products found'));
         }
 
@@ -32,23 +31,15 @@ class BestSellerProductsGrid extends ConsumerWidget {
                   const Text(
                     'Best Selling',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Lato',
-                      color: Color(0xFF1E222B),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'See All',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Lato',
-                        color: Color(0xFF3669C9),
-                      ),
-                    ),
+                    onPressed: () {
+                      context.push('/best-seller-products');
+                    },
+                    child: const Text('See All'),
                   ),
                 ],
               ),
@@ -57,8 +48,8 @@ class BestSellerProductsGrid extends ConsumerWidget {
             SizedBox(
               height: 200,
               child: ListView.builder(
-                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   final product = products[index];
@@ -68,40 +59,32 @@ class BestSellerProductsGrid extends ConsumerWidget {
                   final variety = product.varieties.first;
 
                   return Padding(
-                    padding: EdgeInsets.only(right: index != products.length - 1 ? 16 : 0),
-                    child: ProductCard(
-                      imageUrl: variety.imageUrls.isNotEmpty
-                          ? variety.imageUrls.first
-                          : 'assets/images/banana.png',
-                      name: product.name,
-                      price: variety.discountPrice,
-                      originalPrice: variety.price,
-                      unit: '${variety.value} ${variety.unit}',
-                      discount: variety.discountPercent.toInt(),
-                      id: product.id,
-                      isCardSmall: true,
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => ProductDetailsOverlay(
-                            product: CategoryProduct(
-                              id: product.id,
-                              name: product.name,
-                              price: variety.discountPrice,
-                              originalPrice: variety.price,
-                              unit: '${variety.value} ${variety.unit}',
-                              discount: '${variety.discountPercent}% OFF',
-                              imageUrl: variety.imageUrls.isNotEmpty
-                                  ? variety.imageUrls.first
-                                  : 'assets/images/banana.png',
-                              category: product.category,
-                              subCategory: product.subCategory,
+                    padding: EdgeInsets.only(
+                        right: index != products.length - 1 ? 16 : 0),
+                    child: SizedBox(
+                      width: 180,
+                      child: ProductCard(
+                        isCardSmall: true,
+                        id: variety.id,
+                        name: product.name,
+                        price: variety.discountPrice,
+                        originalPrice: variety.price,
+                        imageUrl: variety.imageUrls.isNotEmpty
+                            ? variety.imageUrls.first
+                            : 'assets/images/banana.png',
+                        discount: variety.discountPercent.round(),
+                        unit: '${variety.value}${variety.unit}',
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => ProductDetailsOverlay(
+                              product: mapToUiProduct(product),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
@@ -111,7 +94,9 @@ class BestSellerProductsGrid extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+      error: (error, stackTrace) => Center(
+        child: Text('Error loading best seller products: $error'),
+      ),
     );
   }
 }

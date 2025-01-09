@@ -134,4 +134,13 @@ class ProductService {
       rethrow;
     }
   }
+
+  Future<Product> getProduct(String id) async {
+    try {
+      final response = await _apiClient.get('/products/$id');
+      return Product.fromJson(response.data);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

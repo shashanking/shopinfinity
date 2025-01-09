@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../features/profile/providers/profile_provider.dart';
 
-class LocationHeader extends StatelessWidget {
+class LocationHeader extends ConsumerWidget {
   const LocationHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -54,13 +58,17 @@ class LocationHeader extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hi, Salmaan',
+                          'Hi, ${profile.when(
+                            data: (data) => data.name,
+                            loading: () => 'Guest',
+                            error: (_, __) => 'Guest',
+                          )}',
                           style: Theme.of(
                             context,
                           ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textDarkGrey,
-                          ),
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textDarkGrey,
+                              ),
                         ),
                       ],
                     ),
@@ -70,11 +78,10 @@ class LocationHeader extends StatelessWidget {
               Stack(
                 children: [
                   Builder(
-                    builder:
-                        (context) => IconButton(
-                          onPressed: () => GoRouter.of(context).push('/cart'),
-                          icon: const Icon(Icons.shopping_cart_outlined),
-                        ),
+                    builder: (context) => IconButton(
+                      onPressed: () => GoRouter.of(context).push('/cart'),
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                    ),
                   ),
                   Positioned(
                     right: 8,
@@ -90,7 +97,7 @@ class LocationHeader extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

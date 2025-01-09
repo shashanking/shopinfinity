@@ -16,7 +16,7 @@ final addressRoutes = [
         path: 'edit/:id',
         builder: (context, state) {
           final address = state.extra as DeliveryAddress;
-          return AddAddressOverlay(address: address);
+          return AddAddressOverlay();
         },
       ),
     ],

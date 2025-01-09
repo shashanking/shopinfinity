@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shopinfinity/core/theme/app_colors.dart';
-import 'package:shopinfinity/presentation/features/cart/models/cart_item.dart';
 import 'package:shopinfinity/presentation/features/cart/providers/cart_provider.dart';
 
 class ProductCard extends ConsumerWidget {
@@ -93,13 +92,13 @@ class ProductCard extends ConsumerWidget {
                             imageUrl: imageUrl,
                             height: isCardSmall ? 70 : 90,
                             fit: BoxFit.contain,
-                            placeholder: (context, url) => Container(
+                            placeholder: (context, url) => SizedBox(
                               height: isCardSmall ? 70 : 90,
                               child: const Center(
                                 child: CircularProgressIndicator(),
                               ),
                             ),
-                            errorWidget: (context, url, error) => Container(
+                            errorWidget: (context, url, error) => SizedBox(
                               height: isCardSmall ? 70 : 90,
                               child: const Center(
                                 child: Icon(Icons.error_outline),
@@ -180,46 +179,86 @@ class ProductCard extends ConsumerWidget {
                               ],
                             ),
                             const Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                final cartItem = CartItem(
-                                  id: id,
-                                  name: name,
-                                  imageUrl: imageUrl,
-                                  price: price,
-                                  originalPrice: originalPrice,
-                                  weight: unit,
-                                  quantity: 1,
-                                );
-                                ref
-                                    .read(cartProvider.notifier)
-                                    .addItem(cartItem);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Added to cart'),
-                                    duration: Duration(seconds: 2),
-                                  ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final cartState = ref.watch(cartProvider);
+                                final isLoading = cartState.isLoading;
+
+                                return GestureDetector(
+                                  onTap: isLoading
+                                      ? null
+                                      : () async {
+                                          try {
+                                            await ref.read(cartProvider.notifier).updateCart(
+                                                  varietyId: id,
+                                                  quantity: 1,
+                                                );
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: const Text(
+                                                    'Added to cart',
+                                                    style: TextStyle(color: Colors.white),
+                                                  ),
+                                                  duration: const Duration(seconds: 2),
+                                                  backgroundColor: AppColors.primary,
+                                                ),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Failed to add to cart: ${e.toString()}',
+                                                    style: const TextStyle(color: Colors.white),
+                                                  ),
+                                                  duration: const Duration(seconds: 2),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        },
+                                  child: isCardSmall
+                                      ? CircleAvatar(
+                                          radius: 16,
+                                          backgroundColor: AppColors.iconPrimary,
+                                          child: isLoading
+                                              ? const SizedBox(
+                                                  height: 14,
+                                                  width: 14,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: Colors.white,
+                                                  ),
+                                                )
+                                              : const Icon(
+                                                  Icons.add_shopping_cart_rounded,
+                                                  size: 18,
+                                                  color: Colors.white,
+                                                ),
+                                        )
+                                      : CircleAvatar(
+                                          radius: 18,
+                                          backgroundColor: AppColors.iconPrimary,
+                                          child: isLoading
+                                              ? const SizedBox(
+                                                  height: 16,
+                                                  width: 16,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: Colors.white,
+                                                  ),
+                                                )
+                                              : const Icon(
+                                                  Icons.add_shopping_cart_rounded,
+                                                  size: 24,
+                                                  color: Colors.white,
+                                                ),
+                                        ),
                                 );
                               },
-                              child: isCardSmall
-                                  ? CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: AppColors.iconPrimary,
-                                      child: Image.asset(
-                                        'assets/icons/shopping_bag.png',
-                                        height: 18,
-                                        width: 18,
-                                      ),
-                                    )
-                                  : CircleAvatar(
-                                      radius: 18,
-                                      backgroundColor: AppColors.iconPrimary,
-                                      child: Image.asset(
-                                        'assets/icons/shopping_bag.png',
-                                        height: 24,
-                                        width: 24,
-                                      ),
-                                    ),
                             ),
                           ],
                         ),

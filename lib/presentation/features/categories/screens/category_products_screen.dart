@@ -8,8 +8,6 @@ import '../../shop/providers/categories_provider.dart';
 import '../providers/category_products_provider.dart';
 import '../widgets/subcategory_list_item.dart';
 import '../../product/widgets/product_details_overlay.dart';
-import '../../../../core/models/product/product.dart';
-import '../models/category_product.dart';
 
 class CategoryProductsScreen extends ConsumerStatefulWidget {
   final String categoryName;
@@ -28,7 +26,8 @@ class CategoryProductsScreen extends ConsumerStatefulWidget {
       _CategoryProductsScreenState();
 }
 
-class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen> {
+class _CategoryProductsScreenState
+    extends ConsumerState<CategoryProductsScreen> {
   late String selectedSubCategory;
 
   @override
@@ -37,24 +36,10 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
     selectedSubCategory = widget.subCategoryName;
   }
 
-  CategoryProduct _mapToUiProduct(Product product) {
-    final variety = product.varieties.first;
-    return CategoryProduct(
-      id: product.id,
-      name: product.name,
-      imageUrl: variety.imageUrls.first,
-      price: variety.price,
-      originalPrice: variety.discountPrice,
-      unit: variety.unit,
-      discount: '${variety.discountPercent.toInt()}% OFF',
-      category: product.category,
-      subCategory: product.subCategory,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final productsAsync = ref.watch(categoryProductsProvider(selectedSubCategory));
+    final productsAsync =
+        ref.watch(categoryProductsProvider(selectedSubCategory));
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
@@ -89,7 +74,7 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
             ),
             Text(
               productsAsync.when(
-                data: (data) => '${data.count} items',
+                data: (data) => '${data.content.length} items',
                 loading: () => '${widget.itemCount} items',
                 error: (_, __) => '${widget.itemCount} items',
               ),
@@ -169,24 +154,24 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                   itemCount: products.content.length,
                   itemBuilder: (context, index) {
                     final product = products.content[index];
-                    final variety = product.varieties.first;
-                    final uiProduct = _mapToUiProduct(product);
                     return ProductCard(
                       isCardSmall: true,
-                      imageUrl: variety.imageUrls.first,
-                      name: product.name,
-                      price: variety.price,
-                      originalPrice: variety.discountPrice,
-                      unit: variety.unit,
-                      discount: variety.discountPercent.toInt(),
                       id: product.id,
+                      name: product.name,
+                      price: product.varieties.first.discountPrice,
+                      originalPrice: product.varieties.first.price,
+                      imageUrl: product.varieties.first.imageUrls.first,
+                      discount: product.varieties.first.discountPercent.round(),
+                      unit:
+                          '${product.varieties.first.value}${product.varieties.first.unit}',
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (context) =>
-                              ProductDetailsOverlay(product: uiProduct),
+                          builder: (context) => ProductDetailsOverlay(
+                            product: product,
+                          ),
                         );
                       },
                     );

@@ -1,29 +1,53 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/dio_provider.dart';
 import '../models/profile.dart';
+import '../repositories/profile_repository.dart';
 
-final profileProvider = StateNotifierProvider<ProfileNotifier, Profile>((ref) {
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return ProfileRepository(dio: dio);
+});
+
+final profileProvider = AsyncNotifierProvider<ProfileNotifier, Profile>(() {
   return ProfileNotifier();
 });
 
-class ProfileNotifier extends StateNotifier<Profile> {
-  ProfileNotifier()
-      : super(
-          const Profile(
-            name: 'Salmaan Ahmed',
-            email: 'salmaan@example.com',
-            mobile: '96000 16417',
-          ),
-        );
+class ProfileNotifier extends AsyncNotifier<Profile> {
+  late final ProfileRepository _repository;
 
-  void updateProfile({
+  @override
+  Future<Profile> build() async {
+    _repository = ref.read(profileRepositoryProvider);
+    return _fetchProfile();
+  }
+
+  Future<Profile> _fetchProfile() async {
+    try {
+      final response = await _repository.fetchProfile();
+      return Profile(
+        name: response['name'] ?? '',
+        email: response['email'] ?? '',
+        mobile: response['primaryPhoneNo'] ?? '',
+      );
+    } catch (e) {
+      // Return a default profile on error
+      return const Profile(
+        name: 'Guest',
+        email: '',
+        mobile: '',
+      );
+    }
+  }
+
+  Future<void> updateProfile({
     String? name,
     String? email,
     String? mobile,
-  }) {
-    state = state.copyWith(
+  }) async {
+    state = AsyncValue.data(state.value!.copyWith(
       name: name,
       email: email,
       mobile: mobile,
-    );
+    ));
   }
 }

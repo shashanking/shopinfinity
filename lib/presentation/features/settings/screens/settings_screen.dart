@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
+import 'package:go_router/go_router.dart';
 import '../../../features/profile/providers/profile_provider.dart';
+import '../../../features/authentication/providers/auth_provider.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -10,7 +11,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
-    
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -41,50 +42,62 @@ class SettingsScreen extends ConsumerWidget {
             Container(
               color: Colors.white,
               padding: const EdgeInsets.all(16),
-              child: Row(
+              child: Column(
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.person_outline,
-                      color: AppColors.primary,
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          profile.name,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: const Color(0xFF111827),
-                            fontWeight: FontWeight.w600,
-                          ),
+                  Row(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          profile.mobile,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF6B7280),
-                          ),
+                        child: const Icon(
+                          Icons.person_outline,
+                          color: AppColors.primary,
+                          size: 32,
                         ),
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: Text(
-                      'Version 1.1.21',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-                    ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile.when(
+                                data: (data) => data.name,
+                                loading: () => 'Loading...',
+                                error: (_, __) => 'Guest',
+                              ),
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: const Color(0xFF111827),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              profile.when(
+                                data: (data) => data.mobile,
+                                loading: () => '',
+                                error: (_, __) => '',
+                              ),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Text(
+                          'Version 1.1.21',
+                          style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -107,11 +120,7 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'Orders',
                     onTap: () => context.push('/orders'),
                   ),
-                  _SettingsTile(
-                    icon: Icons.headset_mic_outlined,
-                    title: 'Support',
-                    onTap: () {},
-                  ),
+                  
                   _SettingsTile(
                     icon: Icons.location_on_outlined,
                     title: 'Address',
@@ -126,6 +135,27 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.info_outline,
                     title: 'About US',
                     onTap: () => context.go('/settings/about'),
+                    showDivider: false,
+                  ),
+                  _SettingsTile(
+                    icon: Icons.logout_outlined,
+                    title: 'Logout',
+                    onTap: () async {
+                      try {
+                        await ref.read(authProvider.notifier).logout();
+                        if (context.mounted) {
+                          context.go('/login');
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Failed to logout. Please try again.'),
+                            ),
+                          );
+                        }
+                      }
+                    },
                     showDivider: false,
                   ),
                 ],

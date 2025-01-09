@@ -19,9 +19,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     final profile = ref.read(profileProvider);
-    _nameController = TextEditingController(text: profile.name);
-    _emailController = TextEditingController(text: profile.email);
-    _mobileController = TextEditingController(text: profile.mobile);
+    profile.whenData((data) {
+      _nameController = TextEditingController(text: data.name);
+      _emailController = TextEditingController(text: data.email);
+      _mobileController = TextEditingController(text: data.mobile);
+    });
   }
 
   @override
@@ -34,6 +36,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profile = ref.watch(profileProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
@@ -41,10 +45,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF111827)),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
         ),
         title: const Text(
-          'Your Profile',
+          'Profile',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
@@ -52,63 +62,62 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: profile.when(
+        data: (profileData) => SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 16),
               _buildInputField(
-                label: 'Full Name',
-                hint: 'Enter Here',
+                label: 'Name',
+                hint: 'Enter your name',
                 controller: _nameController,
                 isRequired: true,
+                enabled: false,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildInputField(
-                label: 'Email ID',
-                hint: 'Enter Here',
+                label: 'Email',
+                hint: 'Enter your email',
                 controller: _emailController,
                 isRequired: true,
+                enabled: false,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildInputField(
-                label: 'Mobile Number',
-                hint: 'Enter Here',
+                label: 'Mobile',
+                hint: 'Enter your mobile number',
                 controller: _mobileController,
                 isRequired: true,
+                enabled: false,
               ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    ref.read(profileProvider.notifier).updateProfile(
-                          name: _nameController.text,
-                          email: _emailController.text,
-                          mobile: _mobileController.text,
-                        );
-                    context.pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+              // const SizedBox(height: 24),
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       ref.read(profileProvider.notifier).updateProfile(
+              //             name: _nameController.text,
+              //             email: _emailController.text,
+              //             mobile: _mobileController.text,
+              //           );
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       padding: const EdgeInsets.symmetric(vertical: 16),
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(8),
+              //       ),
+              //     ),
+              //     child: const Text('Update Profile'),
+              //   ),
+              // ),
             ],
           ),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Text('Error: $error'),
         ),
       ),
     );
@@ -119,6 +128,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required String hint,
     required TextEditingController controller,
     required bool isRequired,
+    bool enabled = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,6 +162,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           child: TextField(
             controller: controller,
+            enabled: enabled,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(

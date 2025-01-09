@@ -257,7 +257,6 @@ class ShopScreen extends ConsumerWidget {
 
   Widget _buildBestSellingProducts() {
     return const SizedBox(
-      height: 280,
       child: BestSellerProductsGrid(),
     );
   }
@@ -277,7 +276,6 @@ class ShopScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  height: 280,
                   child: ExclusiveProductsGrid(),
                 ),
               ],

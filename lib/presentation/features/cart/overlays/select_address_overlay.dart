@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shopinfinity/core/theme/app_colors.dart';
-import '../providers/address_provider.dart';
-import '../models/delivery_address.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../profile/models/address.dart';
+import '../../profile/providers/address_provider.dart';
+import '../providers/selected_address_provider.dart';
 import 'add_address_overlay.dart';
 
 class SelectAddressOverlay extends ConsumerWidget {
@@ -11,7 +12,7 @@ class SelectAddressOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final addresses = ref.watch(addressProvider);
+    final addressAsync = ref.watch(addressProvider);
 
     return Material(
       color: Colors.transparent,
@@ -98,15 +99,43 @@ class SelectAddressOverlay extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(16),
-                itemCount: addresses.length,
-                itemBuilder: (context, index) {
-                  final address = addresses[index];
-                  return AddressCard(address: address);
-                },
+            addressAsync.when(
+              data: (addressData) {
+                if (addressData == null || addressData.content.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text('No saved addresses'),
+                  );
+                }
+
+                return Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: addressData.content.length,
+                    itemBuilder: (context, index) {
+                      final address = addressData.content[index];
+                      return AddressCard(
+                        address: address,
+                        onTap: () {
+                          ref.read(selectedAddressProvider.notifier)
+                              .setSelectedAddress(address);
+                          context.pop();
+                        },
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (_, __) => const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Failed to load addresses'),
               ),
             ),
           ],
@@ -117,66 +146,96 @@ class SelectAddressOverlay extends ConsumerWidget {
 }
 
 class AddressCard extends StatelessWidget {
-  final DeliveryAddress address;
+  final Address address;
+  final VoidCallback onTap;
 
-  const AddressCard({super.key, required this.address});
+  const AddressCard({
+    super.key,
+    required this.address,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: address.primaryAddress 
+              ? Border.all(color: AppColors.primary)
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.location_on_outlined,
+                color: Color(0xFF10B981),
+              ),
             ),
-            child: const Icon(
-              Icons.location_on_outlined,
-              color: Color(0xFF10B981),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  address.label,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF111827),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        address.addressName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      if (address.primaryAddress) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'DEFAULT',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${address.landmark}, ${address.address}, ${address.city}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6B7280),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${address.addressLine1}, ${address.landmark}, ${address.city}, ${address.state} - ${address.pincode}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF6B7280),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: () {
-              // TODO: Implement edit address
-            },
-            icon: const Icon(Icons.edit_outlined, color: Color(0xFF6B7280)),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

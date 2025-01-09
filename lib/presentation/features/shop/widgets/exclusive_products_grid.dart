@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shopinfinity/presentation/features/shop/providers/exclusive_products_provider.dart';
-
+import 'package:go_router/go_router.dart';
+import '../../../../core/utils/product_mapper.dart';
 import '../../../shared/widgets/product_card.dart';
-import '../../categories/models/category_product.dart';
 import '../../product/widgets/product_details_overlay.dart';
+import '../providers/exclusive_products_provider.dart';
 
 class ExclusiveProductsGrid extends ConsumerWidget {
   const ExclusiveProductsGrid({super.key});
@@ -15,8 +15,7 @@ class ExclusiveProductsGrid extends ConsumerWidget {
 
     return exclusiveProductsState.when(
       data: (productResponse) {
-        if (productResponse == null || 
-            productResponse.content.isEmpty) {
+        if (productResponse == null || productResponse.content.isEmpty) {
           return const Center(child: Text('No exclusive products found'));
         }
 
@@ -30,25 +29,17 @@ class ExclusiveProductsGrid extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Exclusive Products',
+                    'Exclusive',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Lato',
-                      color: Color(0xFF1E222B),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'See All',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Lato',
-                        color: Color(0xFF3669C9),
-                      ),
-                    ),
+                    onPressed: () {
+                      context.push('/exclusive-products');
+                    },
+                    child: const Text('See All'),
                   ),
                 ],
               ),
@@ -57,51 +48,40 @@ class ExclusiveProductsGrid extends ConsumerWidget {
             SizedBox(
               height: 200,
               child: ListView.builder(
-                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   final product = products[index];
-                  if (product.varieties.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
+                  if (product.varieties.isEmpty) return const SizedBox();
                   final variety = product.varieties.first;
 
                   return Padding(
-                    padding: EdgeInsets.only(right: index != products.length - 1 ? 16 : 0),
-                    child: ProductCard(
-                      imageUrl: variety.imageUrls.isNotEmpty
-                          ? variety.imageUrls.first
-                          : 'assets/images/banana.png',
-                      name: product.name,
-                      price: variety.discountPrice,
-                      originalPrice: variety.price,
-                      unit: '${variety.value} ${variety.unit}',
-                      discount: variety.discountPercent.toInt(),
-                      id: product.id,
-                      isCardSmall: true,
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => ProductDetailsOverlay(
-                            product: CategoryProduct(
-                              id: product.id,
-                              name: product.name,
-                              price: variety.discountPrice,
-                              originalPrice: variety.price,
-                              unit: '${variety.value} ${variety.unit}',
-                              discount: '${variety.discountPercent}% OFF',
-                              imageUrl: variety.imageUrls.isNotEmpty
-                                  ? variety.imageUrls.first
-                                  : 'assets/images/banana.png',
-                              category: product.category,
-                              subCategory: product.subCategory,
+                    padding: const EdgeInsets.only(right: 16),
+                    child: SizedBox(
+                      width: 160,
+                      child: ProductCard(
+                        id: product.id,
+                        name: product.name,
+                        price: variety.discountPrice,
+                        originalPrice: variety.price,
+                        imageUrl: variety.imageUrls.isNotEmpty
+                            ? variety.imageUrls.first
+                            : '',
+                        discount: variety.discountPercent.round(),
+                        unit: '${variety.value}${variety.unit}',
+                        isCardSmall: true,
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => ProductDetailsOverlay(
+                              product: mapToUiProduct(product),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   );
                 },
@@ -111,7 +91,9 @@ class ExclusiveProductsGrid extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+      error: (error, stackTrace) => Center(
+        child: Text('Error loading exclusive products: $error'),
+      ),
     );
   }
 }

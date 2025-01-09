@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/cart_item.dart';
+import '../models/cart_response.dart';
 import '../providers/cart_provider.dart';
 
 class CartItemCard extends ConsumerWidget {
-  final CartItem item;
+  final BoughtProductDetails item;
 
   const CartItemCard({super.key, required this.item});
 
@@ -24,8 +24,8 @@ class CartItemCard extends ConsumerWidget {
           // Product Image
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              item.imageUrl,
+            child: Image.network(
+              item.documents.first,
               width: 60,
               height: 60,
               fit: BoxFit.cover,
@@ -51,7 +51,7 @@ class CartItemCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item.weight,
+                  '${item.value} ${item.unit}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF6B7280),
@@ -61,7 +61,7 @@ class CartItemCard extends ConsumerWidget {
                 Row(
                   children: [
                     Text(
-                      '₹${item.price}',
+                      '₹${item.boughtPrice}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -70,7 +70,7 @@ class CartItemCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '₹${item.originalPrice}',
+                      '₹${item.price}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF6B7280),
@@ -86,29 +86,23 @@ class CartItemCard extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
                   onTap: () {
-                    ref.read(cartProvider.notifier).incrementQuantity(item.id);
+                    ref.read(cartProvider.notifier).updateCart(
+                          varietyId: item.varietyId,
+                          quantity: item.boughtQuantity + 1,
+                        );
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    // decoration: BoxDecoration(
-                    //   color: Colors.black,
-                    //   borderRadius: BorderRadius.circular(4),
-                    // ),
-                    child: const Text(
-                      '+',
-                      style: TextStyle(
-                        fontSize: 22,
-                        color: Color(0xFF1F2937),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  child: const Icon(
+                    Icons.add,
+                    size: 24,
+                    color: Color(0xFF1F2937),
                   ),
                 ),
                 Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 2,
@@ -118,7 +112,7 @@ class CartItemCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    '${item.quantity}',
+                    '${item.boughtQuantity}',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -128,22 +122,24 @@ class CartItemCard extends ConsumerWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    ref.read(cartProvider.notifier).decrementQuantity(item.id);
+                    // When quantity is 1 and user decrements, remove the item
+                    if (item.boughtQuantity == 1) {
+                      // Send empty list for this item to remove it
+                      ref.read(cartProvider.notifier).updateCart(
+                            varietyId: item.varietyId,
+                            quantity: 0,
+                          );
+                    } else {
+                      ref.read(cartProvider.notifier).updateCart(
+                            varietyId: item.varietyId,
+                            quantity: item.boughtQuantity - 1,
+                          );
+                    }
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    // decoration: BoxDecoration(
-                    //   border: Border.all(color: const Color(0xFF10B981)),
-                    //   borderRadius: BorderRadius.circular(4),
-                    // ),
-                    child: const Text(
-                      '-',
-                      style: TextStyle(
-                        fontSize: 22,
-                        color: Color(0xFF1F2937),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                  child: const Icon(
+                    Icons.remove,
+                    size: 24,
+                    color: Color(0xFF1F2937),
                   ),
                 ),
               ],
