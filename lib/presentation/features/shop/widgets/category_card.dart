@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/category_item.dart';
 
 class CategoryCard extends StatelessWidget {
@@ -36,7 +37,25 @@ class CategoryCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(_borderRadius),
             child: Padding(
               padding: const EdgeInsets.all(_imagePadding),
-              child: Image.asset(item.imageUrl, fit: BoxFit.contain),
+              child: item.imageUrl.startsWith('http')
+                  ? CachedNetworkImage(
+                      imageUrl: item.imageUrl,
+                      fit: BoxFit.contain,
+                      placeholder: (context, url) => const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                      ),
+                    )
+                  : Image.asset(item.imageUrl, fit: BoxFit.contain),
             ),
           ),
         ),

@@ -1,35 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../constants/categories_data.dart';
+import '../../../../core/models/category/category_response.dart';
+import '../providers/categories_screen_provider.dart';
 import '../widgets/category_list_item.dart';
 import '../widgets/subcategory_grid_item.dart';
 
-class CategoriesScreen extends StatefulWidget {
+class CategoriesScreen extends ConsumerStatefulWidget {
   const CategoriesScreen({super.key});
 
   @override
-  State<CategoriesScreen> createState() => _CategoriesScreenState();
+  ConsumerState<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScreenState extends State<CategoriesScreen> {
+class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   int selectedCategoryIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: Row(
-        children: [
-          _buildCategoryList(),
-          Container(
-            width: 1,
-            height: double.infinity,
-            color: const Color(0xFFE5E7EB),
+    return ref.watch(categoriesScreenProvider).when(
+          data: (categoryResponse) {
+            if (categoryResponse == null) {
+              return const Scaffold(
+                body: Center(
+                  child: Text('No categories found'),
+                ),
+              );
+            }
+
+            final categories = categoryResponse.categories;
+
+            return Scaffold(
+              appBar: _buildAppBar(),
+              body: Row(
+                children: [
+                  _buildCategoryList(categories),
+                  Container(
+                    width: 1,
+                    height: double.infinity,
+                    color: const Color(0xFFE5E7EB),
+                  ),
+                  _buildSubcategoriesSection(categories[selectedCategoryIndex]),
+                ],
+              ),
+            );
+          },
+          loading: () => const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           ),
-          _buildSubcategoriesSection(),
-        ],
-      ),
-    );
+          error: (error, stack) => Scaffold(
+            body: Center(
+              child: Text('Error: $error'),
+            ),
+          ),
+        );
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -64,7 +90,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildCategoryList() {
+  Widget _buildCategoryList(List<Category> categories) {
     return Container(
       width: 86,
       decoration: BoxDecoration(
@@ -79,10 +105,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ],
       ),
       child: ListView.builder(
-        itemCount: CategoriesData.categories.length,
+        itemCount: categories.length,
         itemBuilder: (context, index) {
+          final category = categories[index];
           return CategoryListItem(
-            category: CategoriesData.categories[index],
+            category: category,
             isSelected: selectedCategoryIndex == index,
             onTap: () {
               setState(() {
@@ -95,9 +122,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildSubcategoriesSection() {
-    final selectedCategory = CategoriesData.categories[selectedCategoryIndex];
-
+  Widget _buildSubcategoriesSection(Category selectedCategory) {
     return Expanded(
       child: Container(
         color: const Color(0xFFF8F9FB),
@@ -125,8 +150,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
                 itemCount: selectedCategory.subCategories.length,
                 itemBuilder: (context, index) {
+                  final subCategory = selectedCategory.subCategories[index];
                   return SubcategoryGridItem(
-                    subCategory: selectedCategory.subCategories[index],
+                    subCategory: subCategory,
                     categoryName: selectedCategory.name,
                   );
                 },

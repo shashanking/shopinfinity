@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../shared/widgets/product_card.dart';
-import '../constants/categories_data.dart';
-import '../constants/category_products_data.dart';
+import '../../shop/providers/categories_provider.dart';
+import '../providers/category_products_provider.dart';
 import '../widgets/subcategory_list_item.dart';
 import '../../product/widgets/product_details_overlay.dart';
+import '../../../../core/models/product/product.dart';
+import '../models/category_product.dart';
 
-class CategoryProductsScreen extends StatefulWidget {
+class CategoryProductsScreen extends ConsumerStatefulWidget {
   final String categoryName;
   final String subCategoryName;
   final String itemCount;
@@ -21,10 +24,11 @@ class CategoryProductsScreen extends StatefulWidget {
   });
 
   @override
-  State<CategoryProductsScreen> createState() => _CategoryProductsScreenState();
+  ConsumerState<CategoryProductsScreen> createState() =>
+      _CategoryProductsScreenState();
 }
 
-class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
+class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen> {
   late String selectedSubCategory;
 
   @override
@@ -33,12 +37,25 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
     selectedSubCategory = widget.subCategoryName;
   }
 
+  CategoryProduct _mapToUiProduct(Product product) {
+    final variety = product.varieties.first;
+    return CategoryProduct(
+      id: product.id,
+      name: product.name,
+      imageUrl: variety.imageUrls.first,
+      price: variety.price,
+      originalPrice: variety.discountPrice,
+      unit: variety.unit,
+      discount: '${variety.discountPercent.toInt()}% OFF',
+      category: product.category,
+      subCategory: product.subCategory,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final category = CategoriesData.categories.firstWhere(
-      (c) => c.name == widget.categoryName,
-    );
-    final products = CategoryProductsData.products[selectedSubCategory] ?? [];
+    final productsAsync = ref.watch(categoryProductsProvider(selectedSubCategory));
+    final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +88,11 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
               ),
             ),
             Text(
-              '${widget.itemCount} items',
+              productsAsync.when(
+                data: (data) => '${data.count} items',
+                loading: () => '${widget.itemCount} items',
+                error: (_, __) => '${widget.itemCount} items',
+              ),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
@@ -105,22 +126,33 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
                 ),
               ],
             ),
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: category.subCategories.length,
-              itemBuilder: (context, index) {
-                final subCategory = category.subCategories[index];
-                return SubcategoryListItem(
-                  name: subCategory.name,
-                  imageUrl: subCategory.imageUrl,
-                  isSelected: selectedSubCategory == subCategory.name,
-                  onTap: () {
-                    setState(() {
-                      selectedSubCategory = subCategory.name;
-                    });
+            child: categoriesAsync.when(
+              data: (categoryResponse) {
+                final category = categoryResponse!.categories.firstWhere(
+                  (c) => c.name == widget.categoryName,
+                  orElse: () => throw Exception('Category not found'),
+                );
+                return ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: category.subCategories.length,
+                  itemBuilder: (context, index) {
+                    final subCategory = category.subCategories[index];
+                    return SubcategoryListItem(
+                      name: subCategory.name,
+                      imageUrl: subCategory.documentUrl,
+                      isSelected: selectedSubCategory == subCategory.name,
+                      onTap: () {
+                        setState(() {
+                          selectedSubCategory = subCategory.name;
+                        });
+                      },
+                    );
                   },
                 );
               },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) =>
+                  const Center(child: Text('Error loading subcategories')),
             ),
           ),
           Container(width: 1, color: const Color(0xFFE5E7EB)),
@@ -129,36 +161,40 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
             child: Container(
               color: const Color(0xFFF8F9FB),
               padding: const EdgeInsets.all(12),
-              child: MasonryGridView.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return ProductCard(
-                    isCardSmall: true,
-                    imageUrl: product.imageUrl,
-                    name: product.name,
-                    price: product.price,
-                    originalPrice: product.originalPrice!,
-                    unit: product.unit,
-                    discount: int.parse(
-                      product.discount?.replaceAll(RegExp(r'[^0-9]'), '') ??
-                          '0',
-                    ),
-                    id: product.id,
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            ProductDetailsOverlay(product: product),
-                      );
-                    },
-                  );
-                },
+              child: productsAsync.when(
+                data: (products) => MasonryGridView.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  itemCount: products.content.length,
+                  itemBuilder: (context, index) {
+                    final product = products.content[index];
+                    final variety = product.varieties.first;
+                    final uiProduct = _mapToUiProduct(product);
+                    return ProductCard(
+                      isCardSmall: true,
+                      imageUrl: variety.imageUrls.first,
+                      name: product.name,
+                      price: variety.price,
+                      originalPrice: variety.discountPrice,
+                      unit: variety.unit,
+                      discount: variety.discountPercent.toInt(),
+                      id: product.id,
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) =>
+                              ProductDetailsOverlay(product: uiProduct),
+                        );
+                      },
+                    );
+                  },
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) =>
+                    const Center(child: Text('Error loading products')),
               ),
             ),
           ),

@@ -9,16 +9,15 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
-  final TextStyle style;
   final bool enabled;
   final String? errorText;
   final ValueChanged<String>? onChanged;
+  final int? maxLength;
 
   const CustomTextField({
     super.key,
-    required this.label,
+    this.label = '',
     required this.hint,
-    required this.style,
     this.prefix = '',
     this.controller,
     this.keyboardType,
@@ -26,6 +25,7 @@ class CustomTextField extends StatelessWidget {
     this.enabled = true,
     this.errorText,
     this.onChanged,
+    this.maxLength,
   });
 
   @override
@@ -50,42 +50,46 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           inputFormatters: inputFormatters,
           enabled: enabled,
-          onChanged: onChanged,
-          style: style,
+          maxLength: maxLength,
+          style: const TextStyle(
+            fontSize: 16,
+            fontFamily: 'Lato',
+          ),
           decoration: InputDecoration(
-            prefix: prefix.isEmpty
-                ? null
-                : Text(
-                    prefix,
-                    style: style.copyWith(
-                      color: AppColors.textPrimary,
-                      fontSize: 20,
-                    ),
-                  ),
             hintText: hint,
-            hintStyle: style.copyWith(color: AppColors.textGrey, fontSize: 16),
-            filled: true,
-            fillColor: enabled ? Colors.white : AppColors.background,
+            prefixText: prefix,
             errorText: errorText,
+            counterText: '',
+            filled: true,
+            fillColor: enabled ? AppColors.inputBackground : AppColors.inputDisabled,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: errorText != null ? Colors.red : Colors.grey,
-              ),
+              borderSide: const BorderSide(color: AppColors.inputBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.grey),
+              borderSide: const BorderSide(color: AppColors.inputBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.blue),
+              borderSide: BorderSide(
+                color: Theme.of(context).primaryColor,
+                width: 1,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
+              borderSide: const BorderSide(
+                color: Colors.red,
+                width: 1,
+              ),
             ),
           ),
+          onChanged: onChanged,
         ),
       ],
     );

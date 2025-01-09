@@ -1,24 +1,73 @@
+import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shopinfinity/core/network/api_exception.dart';
 import '../../../shared/constants/app_strings.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/primary_button.dart';
+import '../providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _phoneController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleSendOtp() async {
+    if (_phoneController.text.isEmpty || _phoneController.text.length != 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid phone number')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    
+    try {
+      dev.log('Sending OTP for phone: ${_phoneController.text}', name: 'LoginScreen');
+      final response = await ref.read(authProvider.notifier).sendOtp(_phoneController.text);
+      dev.log('Send OTP response: ${response?.toJson()}', name: 'LoginScreen');
+      
+      if (mounted) {
+        if (response?.statusCode == 200) {
+          context.replace('/otp', extra: _phoneController.text);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response?.errorMessage ?? 'Failed to send OTP. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e, stack) {
+      dev.log('Error sending OTP: $e\n$stack', name: 'LoginScreen', error: e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is ApiException ? e.message : 'Failed to send OTP. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -59,93 +108,30 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text(
                       "Enter your phone number to receive an OTP.",
                       style: TextStyle(
-                        fontFamily: 'Lato',
-                        fontWeight: FontWeight.w400,
                         fontSize: 16,
-                        color: Color(0xFF6B7280),
+                        fontWeight: FontWeight.w400,
+                        fontFamily: 'Lato',
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    Row(
-                      // mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Container(
-                        //   padding: const EdgeInsets.symmetric(
-                        //     horizontal: 16,
-                        //     vertical: 16,
-                        //   ),
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.white,
-                        //     borderRadius: BorderRadius.circular(12),
-                        //   ),
-                        //   child: const Text(
-                        //     '+91',
-                        //     style: TextStyle(
-                        //       fontSize: 28,
-                        //       fontWeight: FontWeight.w500,
-                        //       fontFamily: 'Lato',
-                        //       color: Color(0xFF374151),
-                        //     ),
-                        //   ),
-                        // ),
-                        // const SizedBox(width: 12),
-                        Expanded(
-                          child: CustomTextField(
-                            prefix: '+91 ',
-                            label: '',
-                            hint: 'Phone Number',
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontFamily: 'Lato',
-                            ),
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(10),
-                            ],
-                          ),
-                        ),
+                    const SizedBox(height: 40),
+                    CustomTextField(
+                      controller: _phoneController,
+                      label: AppStrings.phoneNumberHint,
+                      hint: AppStrings.phoneNumberHint,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 10,
+                      prefix: '+91 ',
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const Spacer(),
                     PrimaryButton(
-                      text: AppStrings.continueButton,
-                      onPressed: () {
-                        context.go('/otp', extra: _phoneController.text);
-                      },
+                      text: AppStrings.continueText,
+                      onPressed: _isLoading ? () {} : _handleSendOtp,
+                      isEnabled: !_isLoading,
                     ),
-                    const SizedBox(height: 24),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'By proceeding, you agree to our ',
-                          style: TextStyle(
-                            fontFamily: 'Lato',
-                            fontWeight: FontWeight.w400,
-                            fontSize: 11,
-                            color: Color(0xFF9CA3AF),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        GestureDetector(
-                          onTap: () {}, // Add your navigation logic here
-                          child: const Text(
-                            'Terms & Conditions and Privacy policy.',
-                            style: TextStyle(
-                              fontFamily: 'Lato',
-                              fontWeight: FontWeight.w400,
-                              fontSize: 11,
-                              color: Color(0xFF4CAF50), // Green color
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),

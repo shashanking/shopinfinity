@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../models/category_model.dart';
+import '../../../../core/models/category/category_response.dart';
 
 class SubcategoryGridItem extends StatelessWidget {
   final SubCategory subCategory;
@@ -37,32 +37,55 @@ class SubcategoryGridItem extends StatelessWidget {
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16),
-                child: Image.asset(
-                  subCategory.imageUrl,
-                  width: 64,
-                  height: 64,
-                  fit: BoxFit.contain,
+              child: Container(
+                margin: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFF8F9FB),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    subCategory.documentUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                    ),
+                  ),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(12),
-              child: Text(
-                subCategory.name,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'Lato',
-                  color: Color(0xFF1E222B),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subCategory.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Lato',
+                      color: Color(0xFF1E222B),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    '703 items',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      fontFamily: 'Lato',
+                      color: Color(0xFF616A7D),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

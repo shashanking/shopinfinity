@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class SubcategoryListItem extends StatelessWidget {
@@ -19,9 +20,9 @@ class SubcategoryListItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : const Color(0xFFF8F9FB),
+          color: const Color(0xFFF8F9FB),
           border: Border(
             right: BorderSide(
               color: isSelected ? const Color(0xFF2A4BA0) : Colors.transparent,
@@ -33,29 +34,52 @@ class SubcategoryListItem extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Image.asset(
-                imageUrl,
-                width: 40,
-                height: 40,
-                fit: BoxFit.contain,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFF2A4BA0),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               name,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontSize: 10,
+                height: 1.2,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 fontFamily: 'Lato',
-                color: isSelected ? const Color(0xFF2A4BA0) : const Color(0xFF1E222B),
+                color: isSelected
+                    ? const Color(0xFF2A4BA0)
+                    : const Color(0xFF1E222B),
               ),
             ),
           ],

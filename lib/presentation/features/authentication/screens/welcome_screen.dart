@@ -6,6 +6,10 @@ import '../../../shared/widgets/primary_button.dart';
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
+  void _handleGetStarted(BuildContext context) {
+    context.go('/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +47,7 @@ class WelcomeScreen extends StatelessWidget {
                 PrimaryButton(
                   text: AppStrings.continueButton,
                   onPressed: () {
-                    context.go('/login');
+                    _handleGetStarted(context);
                   },
                 ),
                 const SizedBox(height: 24),

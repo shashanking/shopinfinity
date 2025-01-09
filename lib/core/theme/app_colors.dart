@@ -23,6 +23,11 @@ class AppColors {
   static const Color textDarkGrey = Color(0xFF4C4F4D);
   static const Color textGrey = Color(0xFF4B5563);
 
+  // Input Colors
+  static const Color inputBackground = Color(0xFFF9FAFB);
+  static const Color inputDisabled = Color(0xFFF3F4F6);
+  static const Color inputBorder = Color(0xFFE5E7EB);
+
   // Gradients
   static const List<Color> primaryGradient = [
     Color(0xFF61D089),

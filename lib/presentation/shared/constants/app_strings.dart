@@ -6,13 +6,18 @@ class AppStrings {
   static const String welcomeSubtitle =
       'Get your groceries in as fast as one hour';
   static const String continueButton = 'Continue';
-  static const String phoneNumberHint =
-      'Enter your phone number to receive an OTP';
-  static const String otpVerificationTitle = 'Otp Verification';
+  static const String phoneNumberHint = 'Enter your phone number';
+  static const String otpVerificationTitle = 'OTP Verification';
   static const String otpMessage = 'We\'ve sent a verification code to';
   static const String personalDetailsTitle = 'Enter Your Personal Details';
   static const String nameLabel = 'Name*';
   static const String emailLabel = 'Email ID*';
   static const String nameHint = 'Enter Name';
   static const String emailHint = 'Enter Here';
+  
+  // Authentication Actions
+  static const String continueText = 'Continue';
+  static const String verifyOtp = 'Verify OTP';
+  static const String resendOtp = 'Resend OTP';
+  static const String completeRegistration = 'Complete Registration';
 }

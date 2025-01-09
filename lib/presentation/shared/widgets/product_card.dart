@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shopinfinity/core/theme/app_colors.dart';
 import 'package:shopinfinity/presentation/features/cart/models/cart_item.dart';
 import 'package:shopinfinity/presentation/features/cart/providers/cart_provider.dart';
@@ -84,11 +85,32 @@ class ProductCard extends ConsumerWidget {
                 children: [
                   Padding(
                     padding: EdgeInsets.only(
-                      top: isCardSmall ? 24.0 : 30.0,
+                      top: isCardSmall ? 40.0 : 30.0,
                       bottom: isCardSmall ? 2.0 : 4.0,
                     ),
-                    child: Image.asset(imageUrl,
-                        height: isCardSmall ? 70 : 90, fit: BoxFit.contain),
+                    child: imageUrl.startsWith('http')
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            height: isCardSmall ? 70 : 90,
+                            fit: BoxFit.contain,
+                            placeholder: (context, url) => Container(
+                              height: isCardSmall ? 70 : 90,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              height: isCardSmall ? 70 : 90,
+                              child: const Center(
+                                child: Icon(Icons.error_outline),
+                              ),
+                            ),
+                          )
+                        : Image.asset(
+                            imageUrl,
+                            height: isCardSmall ? 70 : 90,
+                            fit: BoxFit.contain,
+                          ),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(
