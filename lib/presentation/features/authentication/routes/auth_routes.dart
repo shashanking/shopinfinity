@@ -8,7 +8,6 @@ import 'package:shopinfinity/presentation/features/authentication/screens/login_
 import 'package:shopinfinity/presentation/features/authentication/screens/otp_screen.dart';
 import 'package:shopinfinity/presentation/features/authentication/screens/personal_details_screen.dart';
 import 'package:shopinfinity/presentation/features/authentication/screens/welcome_screen.dart';
-import 'package:shopinfinity/presentation/features/authentication/screens/splash_screen.dart';
 import '../../search/screens/search_screen.dart';
 import '../../categories/screens/categories_screen.dart';
 import '../../categories/screens/category_products_screen.dart';
@@ -17,39 +16,6 @@ import '../../cart/screens/cart_screen.dart';
 import '../../shop/screens/shop_screen.dart';
 
 List<RouteBase> authRoutes = [
-  GoRoute(
-    path: '/',
-    redirect: (BuildContext context, GoRouterState state) async {
-      dev.log('Root route redirect check', name: 'Router');
-      
-      final ref = ProviderScope.containerOf(context);
-      final storage = ref.read(storageServiceProvider);
-      
-      // First priority: Check if user is logged in
-      final isLoggedIn = await storage.isLoggedIn();
-      dev.log('Root route: isLoggedIn = $isLoggedIn', name: 'Router');
-      
-      if (isLoggedIn) {
-        dev.log('Root route: Redirecting to shop (logged in)', name: 'Router');
-        return '/shop';
-      }
-
-      // Second priority: Check if it's first time launch
-      final prefs = await SharedPreferences.getInstance();
-      final hasLaunchedBefore = prefs.getBool('has_launched_before') ?? false;
-      dev.log('Root route: hasLaunchedBefore = $hasLaunchedBefore', name: 'Router');
-      
-      if (!hasLaunchedBefore) {
-        dev.log('Root route: First launch, redirecting to welcome', name: 'Router');
-        await prefs.setBool('has_launched_before', true);
-        return '/welcome';
-      }
-      
-      dev.log('Root route: Not first launch, redirecting to welcome', name: 'Router');
-      return '/welcome';
-    },
-    builder: (context, state) => const SplashScreen(),
-  ),
   GoRoute(
     path: '/welcome',
     redirect: (BuildContext context, GoRouterState state) async {

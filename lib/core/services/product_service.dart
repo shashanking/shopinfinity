@@ -20,6 +20,7 @@ class ProductService {
     int perPage = 10,
     String? category,
     String? subCategory,
+    String? subCategory2,
     String? name,
     String? brand,
     double? minimumPrice,
@@ -35,22 +36,25 @@ class ProductService {
         'perPage': perPage.toString(),
         if (category != null) 'category': category,
         if (subCategory != null) 'subCategory': subCategory,
+        if (subCategory2 != null) 'subCategory2': subCategory2,
         if (name != null) 'name': name,
         if (brand != null) 'brand': brand,
         if (minimumPrice != null) 'minimumPrice': minimumPrice.toString(),
         if (maximumPrice != null) 'maximumPrice': maximumPrice.toString(),
-        if (varietyDescription != null) 'varietyDescription': varietyDescription,
+        if (varietyDescription != null)
+          'varietyDescription': varietyDescription,
         if (codes != null) 'codes': codes,
         if (quantity != null) 'quantity': quantity.toString(),
         if (sortDirection != null) 'sortDirection': sortDirection,
       };
 
-      dev.log('API Request URL: ${ApiConfig.baseUrl}/v1/product/list', name: 'ProductService');
+      dev.log('API Request URL: ${ApiConfig.listProducts}',
+          name: 'ProductService');
       dev.log('Query Parameters: $queryParams', name: 'ProductService');
 
       final token = await _storageService.getToken();
       final response = await _apiClient.get(
-        '${ApiConfig.baseUrl}/v1/product/list',
+        ApiConfig.listProducts,
         queryParameters: queryParams,
         options: dio.Options(
           headers: {
@@ -59,9 +63,11 @@ class ProductService {
         ),
       );
 
-      dev.log('Response Status Code: ${response.statusCode}', name: 'ProductService');
+      dev.log('Response Status Code: ${response.statusCode}',
+          name: 'ProductService');
       if (response.data != null) {
-        dev.log('Response Data Type: ${response.data.runtimeType}', name: 'ProductService');
+        dev.log('Response Data Type: ${response.data.runtimeType}',
+            name: 'ProductService');
       }
 
       if (response.data == null) {

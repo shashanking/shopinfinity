@@ -220,8 +220,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   icon: Icons.money,
                   title: 'Cash on Delivery',
                   subtitle: 'Pay when your order arrives',
+                  isEnabled: true,
                   onTap: () {
-                    context.go('/orders/success');
+                    // context.go('/orders/success');
                   },
                 ),
                 // const SizedBox(height: 16),
@@ -257,60 +258,66 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ],
             ),
             child: ElevatedButton(
-              onPressed: totalAmount < 799 ? null : () async {
-                // Prevent multiple taps
-                if (ref.read(loadingStateProvider)) return;
-                
-                try {
-                  // Set loading state
-                  ref.read(loadingStateProvider.notifier).state = true;
+              onPressed: totalAmount < 799
+                  ? null
+                  : () async {
+                      // Prevent multiple taps
+                      if (ref.read(loadingStateProvider)) return;
 
-                  // Create order request
-                  final request = CreateOrderRequest(
-                    paymentId: 'PICKUP_AT_SHOP',
-                    boughtProductDetailsList: cartItems.map((item) => BoughtProductDetails(
-                      varietyId: item.varietyId,
-                      boughtQuantity: item.boughtQuantity,
-                    )).toList(),
-                    shippingInfo: ShippingInfo(id: selectedAddress.id),
-                    paymentMode: 'PICKUP_AT_SHOP',
-                  );
+                      try {
+                        // Set loading state
+                        ref.read(loadingStateProvider.notifier).state = true;
 
-                  // Create order
-                  final orderResponse = await ref.read(
-                    createOrderProvider(request).future,
-                  );
+                        // Create order request
+                        final request = CreateOrderRequest(
+                          paymentId: 'PICKUP_AT_SHOP',
+                          boughtProductDetailsList: cartItems
+                              .map((item) => BoughtProductDetails(
+                                    varietyId: item.varietyId,
+                                    boughtQuantity: item.boughtQuantity,
+                                  ))
+                              .toList(),
+                          shippingInfo: ShippingInfo(id: selectedAddress.id),
+                          paymentMode: 'PICKUP_AT_SHOP',
+                        );
 
-                  // Clear the cart after successful order
-                  ref.invalidate(cartProvider);
+                        // Create order
+                        final orderResponse = await ref.read(
+                          createOrderProvider(request).future,
+                        );
 
-                  if (mounted) {
-                    // Reset loading state and navigate
-                    Future.microtask(() {
-                      ref.read(loadingStateProvider.notifier).state = false;
-                      context.go('/orders/success');
-                    });
-                  }
-                } catch (e) {
-                  // Reset loading state
-                  ref.read(loadingStateProvider.notifier).state = false;
+                        // Clear the cart after successful order
+                        ref.invalidate(cartProvider);
 
-                  // Show error
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          e.toString().replaceAll('Exception: ', ''),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
+                        if (mounted) {
+                          // Reset loading state and navigate
+                          Future.microtask(() {
+                            ref.read(loadingStateProvider.notifier).state =
+                                false;
+                            context.go('/orders/success');
+                          });
+                        }
+                      } catch (e) {
+                        // Reset loading state
+                        ref.read(loadingStateProvider.notifier).state = false;
+
+                        // Show error
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                e.toString().replaceAll('Exception: ', ''),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
               style: ElevatedButton.styleFrom(
-                backgroundColor: totalAmount < 799 ? Colors.grey : AppColors.primary,
+                backgroundColor:
+                    totalAmount < 799 ? Colors.grey : AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -319,7 +326,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               child: Consumer(
                 builder: (context, ref, child) {
                   final isLoading = ref.watch(loadingStateProvider);
-                  
+
                   if (isLoading) {
                     return const Center(
                       child: SizedBox(
@@ -332,7 +339,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       ),
                     );
                   }
-                  
+
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(

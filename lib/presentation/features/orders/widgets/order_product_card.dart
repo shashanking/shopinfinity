@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/order_item.dart';
 
 class OrderProductCard extends StatelessWidget {
@@ -19,12 +20,28 @@ class OrderProductCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              item.image,
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
-            ),
+            child: item.image.startsWith('http')
+                ? CachedNetworkImage(
+                    imageUrl: item.image,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorWidget: (context, url, error) => Image.asset(
+                      'assets/images/placeholder.png',
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Image.asset(
+                    item.image,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(

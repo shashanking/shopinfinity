@@ -26,7 +26,7 @@ class LocationHeader extends ConsumerWidget {
               ),
               const SizedBox(width: 4),
               const Text(
-                'Patna, Bihar',
+                'Currently delivering in Patna, Bihar',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,

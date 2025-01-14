@@ -1,93 +1,121 @@
 # Privacy Policy for ShopInfinity
 
-*Last Updated: December 28, 2024*
+*Last Updated: January 10, 2024*
 
 ## Introduction
 
-This Privacy Policy describes how ShopInfinity ("we," "our," or "us") handles information in our demo grocery e-commerce application ("the App"). We are committed to protecting your privacy and complying with applicable data protection laws.
+This Privacy Policy describes how ShopInfinity ("we," "our," or "us") collects, uses, and protects your information when you use our mobile application ("the App"). We are committed to protecting your privacy and ensuring transparency in our data practices.
 
-## Information Collection and Use
+## Information We Collect
 
-### Types of Data
+### 1. User-Provided Information
+- **Account Information**: Mobile number for OTP-based authentication
+- **Profile Information**: Name and contact details
+- **Delivery Information**: Shipping addresses
+- **Order Information**: Purchase history, cart contents
+- **User Preferences**: App settings and preferences
 
-Our App is a demonstration UI application that does not collect or store real user data. However, to maintain transparency as per Google Play requirements, we disclose the following:
+### 2. Automatically Collected Information
+- **Device Information**: Device type, operating system version, unique device identifiers
+- **App Usage Data**: Interaction with products, search queries, browsing history
+- **Performance Data**: App performance metrics, crash reports
+- **Network Information**: IP address, connection type
+- **Location Information**: Approximate location for delivery services (with your permission)
 
-1. **Automatically Collected Information**:
-   - App performance data and crash reports (through Google Play Console)
-   - Basic device information required for app functionality
-   - Android Advertising ID (can be reset or deleted through device settings)
+## How We Use Your Information
 
-2. **No Personal Data Collection**:
-   - We do not collect any personal information
-   - No real user accounts are created
-   - No actual transactions are processed
-   - All product listings and prices are for demonstration purposes only
-
-### Use of Permissions
-
-The App may request the following permissions:
-- Internet access: Required for demo UI elements to load
-- Network state: To check device connectivity
-These permissions are used solely for demonstration purposes and basic app functionality.
+We use the collected information to:
+- Authenticate your identity and maintain your account
+- Process and fulfill your orders
+- Provide customer support
+- Send order updates and notifications
+- Improve our app's functionality and user experience
+- Analyze app performance and troubleshoot issues
+- Ensure secure transactions
+- Comply with legal obligations
 
 ## Data Storage and Security
 
-- No user data is stored on external servers
-- No real payment information is processed
-- All displayed content is static and for demonstration purposes only
+- **Data Storage**: Information is stored on secure servers
+- **Security Measures**: 
+  - Encryption of sensitive data
+  - Secure HTTPS connections
+  - Token-based authentication
+  - Regular security updates
+- **Third-party Services**: We use trusted service providers for:
+  - Payment processing
+  - Order fulfillment
+  - Analytics
+  - Cloud storage
+
+## Your Rights and Choices
+
+You have the right to:
+- Access your personal information
+- Update or correct your data
+- Delete your account
+- Opt-out of promotional communications
+- Control app permissions through your device settings
+
+## Data Sharing and Disclosure
+
+We may share your information with:
+- Service providers involved in order fulfillment
+- Payment processors for transaction processing
+- Analytics providers to improve our services
+- Law enforcement when required by law
+
+We do NOT:
+- Sell your personal information
+- Share data with unauthorized third parties
+- Use data for purposes beyond this policy
 
 ## Children's Privacy
 
-Our App does not knowingly collect any personal information from children under 13. All features are demonstration-only and do not involve real data collection.
-
-## Third-Party Services
-
-### Google Play Services
-We use Google Play Services for basic app functionality. This may involve:
-- App distribution through Google Play Store
-- Basic crash reporting
-- Android app update management
-
-For more information about Google Play Services, please visit: https://policies.google.com/privacy
-
-## Your Rights
-
-Under various data protection laws, you have the right to:
-- Opt-out of analytics collection through device settings
-- Reset your Android Advertising ID
-- Request deletion of any crash reports (though no personal data is included)
+Our App does not target or knowingly collect information from children under 13. If you believe a child has provided us with personal information, please contact us.
 
 ## Changes to This Policy
 
-We may update this Privacy Policy to reflect changes in our practices or for other operational, legal, or regulatory reasons. The updated version will be indicated by an updated "Last Updated" date.
+We may update this Privacy Policy periodically. We will notify you of any material changes through the App or via email.
 
 ## Contact Us
 
-If you have any questions about this Privacy Policy or our practices, please contact us at:
+If you have questions about this Privacy Policy or our practices:
 - Email: shashank06.dev@gmail.com
 - Address: Kolkata, India
 
-## Compliance with Google Play Policies
+## Compliance
 
 This App complies with:
-- Google Play Developer Distribution Agreement
-- Google Play Developer Program Policies
-- All applicable privacy and data protection laws
+- Google Play Store Developer Program Policies
+- Consumer Protection Laws
+- Data Protection Regulations
+- E-commerce Regulations
 
 ## Additional Disclosures
 
-### App Store Compliance
-- This App is distributed through Google Play Store
-- All features are demo/UI only
-- No in-app purchases or real transactions
-- No advertisements are displayed
+### App Permissions
+Our app requires the following permissions:
+- Internet access: For basic functionality and data sync
+- Storage: To cache images and app data
+- Camera: For scanning QR codes (optional)
+- Location: For delivery services (optional)
 
-### Security Measures
-While this is a demo app with no real data collection:
-- We follow security best practices in app development
-- All UI demonstrations use mock data
-- No sensitive information is processed or stored
+### Data Retention
+- Account data: Retained while account is active
+- Order history: Kept for legal and business purposes
+- Usage data: Retained for app improvement
+
+### Security Practices
+- Regular security audits
+- Encrypted data transmission
+- Secure payment processing
+- Access controls and monitoring
+
+Contact us at:
+- Email: shashank06.dev@gmail.com
+- mobile: +91 98300 23456
 
 ---
 
-*Note: This privacy policy is designed to comply with Google Play Console requirements while accurately representing our demo-only application. All features and functionalities are for demonstration purposes only.*
+By using ShopInfinity, you agree to this Privacy Policy. For any concerns or requests regarding your privacy, please contact us using the information provided above.

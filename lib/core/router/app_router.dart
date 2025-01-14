@@ -20,12 +20,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: navigatorKey,
     initialLocation: '/',
     redirect: (context, state) async {
+      // Allow splash screen to be shown
+      if (state.matchedLocation == '/') {
+        return null;
+      }
+
+      // Allow welcome screen
+      if (state.matchedLocation == '/welcome') {
+        return null;
+      }
+
       // Check if user is logged in
       final isLoggedIn = await storageService.isLoggedIn();
 
       // If user is logged in and trying to access auth pages, redirect to shop
       if (isLoggedIn && (
-          state.matchedLocation == '/' ||
+          state.matchedLocation == '/login' ||
           state.matchedLocation == '/otp' ||
           state.matchedLocation == '/personal-details'
         )) {
@@ -33,10 +43,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // If user is not logged in and trying to access protected pages, redirect to login
-      if (!isLoggedIn && state.matchedLocation != '/' &&
+      if (!isLoggedIn && 
+          !state.matchedLocation.startsWith('/login') &&
           !state.matchedLocation.startsWith('/otp') &&
-          !state.matchedLocation.startsWith('/personal-details')) {
-        return '/';
+          !state.matchedLocation.startsWith('/personal-details') &&
+          !state.matchedLocation.startsWith('/welcome')) {
+        return '/login';
       }
 
       return null;

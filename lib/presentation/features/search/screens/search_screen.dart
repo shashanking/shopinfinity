@@ -168,28 +168,28 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => const FilterOverlay(),
-                      );
-                    },
-                    child: Container(
-                      width: 45,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.filter_list,
-                        color: Color(0xFF1E222B),
-                      ),
-                    ),
-                  ),
+                  // GestureDetector(
+                  //   onTap: () {
+                  //     showModalBottomSheet(
+                  //       context: context,
+                  //       isScrollControlled: true,
+                  //       backgroundColor: Colors.transparent,
+                  //       builder: (context) => const FilterOverlay(),
+                  //     );
+                  //   },
+                  //   child: Container(
+                  //     width: 45,
+                  //     height: 50,
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.grey[200],
+                  //       borderRadius: BorderRadius.circular(12),
+                  //     ),
+                  //     child: const Icon(
+                  //       Icons.filter_list,
+                  //       color: Color(0xFF1E222B),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

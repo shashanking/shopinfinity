@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:developer' as dev;
 
+import '../../../../core/models/category/category_response.dart';
 import '../../../shared/widgets/product_card.dart';
 import '../../shop/providers/categories_provider.dart';
 import '../providers/category_products_provider.dart';
@@ -28,18 +30,50 @@ class CategoryProductsScreen extends ConsumerStatefulWidget {
 
 class _CategoryProductsScreenState
     extends ConsumerState<CategoryProductsScreen> {
-  late String selectedSubCategory;
+  late String selectedSubCategory2;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    selectedSubCategory = widget.subCategoryName;
+    selectedSubCategory2 = '';
+    _scrollController.addListener(_onScroll);
+
+    // Initially load products for the main subcategory
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier =
+          ref.read(categoryProductsProvider(widget.subCategoryName).notifier);
+      notifier.setIsSubCategory2(false);
+      dev.log('Initial load for subcategory: ${widget.subCategoryName}');
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      final notifier = ref.read(categoryProductsProvider(
+              selectedSubCategory2.isEmpty
+                  ? widget.subCategoryName
+                  : selectedSubCategory2)
+          .notifier);
+      notifier.loadMore();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final productsAsync =
-        ref.watch(categoryProductsProvider(selectedSubCategory));
+    // If selectedSubCategory2 is empty, show products for the main subcategory
+    // Otherwise, show products for the selected subcategory2
+    final productsAsync = ref.watch(categoryProductsProvider(
+        selectedSubCategory2.isEmpty
+            ? widget.subCategoryName
+            : selectedSubCategory2));
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
@@ -64,7 +98,9 @@ class _CategoryProductsScreenState
         title: Column(
           children: [
             Text(
-              selectedSubCategory,
+              selectedSubCategory2.isEmpty
+                  ? widget.subCategoryName
+                  : selectedSubCategory2,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -89,15 +125,15 @@ class _CategoryProductsScreenState
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search, color: Color(0xFF1E222B)),
-          ),
+          // IconButton(
+          //   onPressed: () {},
+          //   icon: const Icon(Icons.search, color: Color(0xFF1E222B)),
+          // ),
         ],
       ),
       body: Row(
         children: [
-          // Left subcategories panel
+          // Left subcategories2 panel
           Container(
             width: 86,
             decoration: BoxDecoration(
@@ -117,19 +153,34 @@ class _CategoryProductsScreenState
                   (c) => c.name == widget.categoryName,
                   orElse: () => throw Exception('Category not found'),
                 );
+                final subCategory = category.subCategories.firstWhere(
+                  (s) => s.name == widget.subCategoryName,
+                  orElse: () => throw Exception('Subcategory not found'),
+                );
                 return ListView.builder(
                   padding: EdgeInsets.zero,
-                  itemCount: category.subCategories.length,
+                  itemCount: subCategory.subCategories.length,
                   itemBuilder: (context, index) {
-                    final subCategory = category.subCategories[index];
+                    final subCategory2 = subCategory.subCategories[index];
                     return SubcategoryListItem(
-                      name: subCategory.name,
-                      imageUrl: subCategory.documentUrl,
-                      isSelected: selectedSubCategory == subCategory.name,
+                      name: subCategory2.name,
+                      imageUrl: subCategory2.documentUrl,
+                      isSelected: selectedSubCategory2 == subCategory2.name,
                       onTap: () {
+                        // First set up the provider with the correct configuration
+                        final notifier = ref.read(
+                            categoryProductsProvider(subCategory2.name)
+                                .notifier);
+                        notifier.setParentSubCategory(widget.subCategoryName);
+                        notifier.setIsSubCategory2(true);
+
+                        // Then update the UI state
                         setState(() {
-                          selectedSubCategory = subCategory.name;
+                          selectedSubCategory2 = subCategory2.name;
                         });
+
+                        dev.log(
+                            'Selected subcategory2: ${subCategory2.name} under parent: ${widget.subCategoryName}');
                       },
                     );
                   },
@@ -148,22 +199,25 @@ class _CategoryProductsScreenState
               padding: const EdgeInsets.all(12),
               child: productsAsync.when(
                 data: (products) => MasonryGridView.count(
+                  controller: _scrollController,
                   crossAxisCount: 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
                   itemCount: products.content.length,
                   itemBuilder: (context, index) {
                     final product = products.content[index];
+                    final variety = product.varieties.first;
                     return ProductCard(
                       isCardSmall: true,
-                      id: product.id,
+                      id: variety.id,
                       name: product.name,
-                      price: product.varieties.first.discountPrice,
-                      originalPrice: product.varieties.first.price,
-                      imageUrl: product.varieties.first.imageUrls.first,
-                      discount: product.varieties.first.discountPercent.round(),
-                      unit:
-                          '${product.varieties.first.value}${product.varieties.first.unit}',
+                      price: variety.discountPrice,
+                      originalPrice: variety.price,
+                      imageUrl: variety.imageUrls.isNotEmpty
+                          ? variety.imageUrls.first
+                          : 'assets/images/no_image.png',
+                      discount: variety.discountPercent.round(),
+                      unit: '${variety.value}${variety.unit}',
                       onTap: () {
                         showModalBottomSheet(
                           context: context,

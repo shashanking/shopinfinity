@@ -24,13 +24,14 @@ class OrderInfoCard extends StatelessWidget {
         children: [
           _InfoRow(
             icon: Icons.access_time,
-            title: 'Order Arrived at',
-            subtitle: '${deliveryTime.day}/${deliveryTime.month}/${deliveryTime.year} at ${deliveryTime.hour}:${deliveryTime.minute}',
+            title: 'Order Placed at',
+            subtitle:
+                '${deliveryTime.day}/${deliveryTime.month}/${deliveryTime.year} at ${deliveryTime.toLocal().hour}:${deliveryTime.toLocal().minute}',
           ),
           const SizedBox(height: 16),
           _InfoRow(
             icon: Icons.location_on,
-            title: 'Delivered to',
+            title: 'Deliver to',
             subtitle: address,
           ),
         ],

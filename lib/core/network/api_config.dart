@@ -1,5 +1,6 @@
 class ApiConfig {
-  static const String baseUrl = 'https://api.kaserag.com'; // Production URL
+  static const String baseUrl =
+      'https://server.mitraconsultancy.co.in'; // Production URL
   static const int connectionTimeout = 30000; // 30 seconds
   static const int receiveTimeout = 60000; // 60 seconds
 
@@ -13,7 +14,8 @@ class ApiConfig {
   static const String verifyOtp = '$loginPrefix/verify-otp';
   static const String logout = '$loginPrefix/logout';
   static const String login = '$loginPrefix/login';
-  static const String register = '$loginPrefix/signup';  // Changed from register to signup
+  static const String register =
+      '$loginPrefix/signup'; // Changed from register to signup
 
   // Product Endpoints
   static const String listProducts = '/v1/product/list'; // Corrected endpoint

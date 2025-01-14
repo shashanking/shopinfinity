@@ -20,9 +20,9 @@ class CategoryService {
     try {
       dev.log('Fetching all categories', name: 'CategoryService');
       final token = await _storageService.getToken();
-      
+
       final response = await _apiClient.get(
-        '${ApiConfig.baseUrl}/v1/category/all',
+        '/v1/category/all',
         options: dio.Options(
           headers: {
             if (token != null) 'Authorization': 'Bearer $token',
@@ -30,8 +30,9 @@ class CategoryService {
         ),
       );
 
-      dev.log('Response Status Code: ${response.statusCode}', name: 'CategoryService');
-      
+      dev.log('Response Status Code: ${response.statusCode}',
+          name: 'CategoryService');
+
       if (response.data == null) {
         throw ApiException(
           message: 'No data received from API',

@@ -181,39 +181,48 @@ class ProductCard extends ConsumerWidget {
                             const Spacer(),
                             Consumer(
                               builder: (context, ref, child) {
-                                final cartState = ref.watch(cartProvider);
-                                final isLoading = cartState.isLoading;
+                                final isLoading =
+                                    ref.watch(productLoadingProvider(id));
 
                                 return GestureDetector(
                                   onTap: isLoading
                                       ? null
                                       : () async {
                                           try {
-                                            await ref.read(cartProvider.notifier).updateCart(
+                                            await ref
+                                                .read(cartProvider.notifier)
+                                                .updateCart(
                                                   varietyId: id,
                                                   quantity: 1,
                                                 );
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 SnackBar(
                                                   content: const Text(
                                                     'Added to cart',
-                                                    style: TextStyle(color: Colors.white),
+                                                    style: TextStyle(
+                                                        color: Colors.white),
                                                   ),
-                                                  duration: const Duration(seconds: 2),
-                                                  backgroundColor: AppColors.primary,
+                                                  duration: const Duration(
+                                                      seconds: 2),
+                                                  backgroundColor:
+                                                      AppColors.primary,
                                                 ),
                                               );
                                             }
                                           } catch (e) {
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 SnackBar(
                                                   content: Text(
                                                     'Failed to add to cart: ${e.toString()}',
-                                                    style: const TextStyle(color: Colors.white),
+                                                    style: const TextStyle(
+                                                        color: Colors.white),
                                                   ),
-                                                  duration: const Duration(seconds: 2),
+                                                  duration: const Duration(
+                                                      seconds: 2),
                                                   backgroundColor: Colors.red,
                                                 ),
                                               );
@@ -223,36 +232,42 @@ class ProductCard extends ConsumerWidget {
                                   child: isCardSmall
                                       ? CircleAvatar(
                                           radius: 16,
-                                          backgroundColor: AppColors.iconPrimary,
+                                          backgroundColor:
+                                              AppColors.iconPrimary,
                                           child: isLoading
                                               ? const SizedBox(
                                                   height: 14,
                                                   width: 14,
-                                                  child: CircularProgressIndicator(
+                                                  child:
+                                                      CircularProgressIndicator(
                                                     strokeWidth: 2,
                                                     color: Colors.white,
                                                   ),
                                                 )
                                               : const Icon(
-                                                  Icons.add_shopping_cart_rounded,
+                                                  Icons
+                                                      .add_shopping_cart_rounded,
                                                   size: 18,
                                                   color: Colors.white,
                                                 ),
                                         )
                                       : CircleAvatar(
                                           radius: 18,
-                                          backgroundColor: AppColors.iconPrimary,
+                                          backgroundColor:
+                                              AppColors.iconPrimary,
                                           child: isLoading
                                               ? const SizedBox(
                                                   height: 16,
                                                   width: 16,
-                                                  child: CircularProgressIndicator(
+                                                  child:
+                                                      CircularProgressIndicator(
                                                     strokeWidth: 2,
                                                     color: Colors.white,
                                                   ),
                                                 )
                                               : const Icon(
-                                                  Icons.add_shopping_cart_rounded,
+                                                  Icons
+                                                      .add_shopping_cart_rounded,
                                                   size: 24,
                                                   color: Colors.white,
                                                 ),

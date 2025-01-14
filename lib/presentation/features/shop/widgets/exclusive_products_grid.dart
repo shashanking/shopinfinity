@@ -61,7 +61,7 @@ class ExclusiveProductsGrid extends ConsumerWidget {
                     child: SizedBox(
                       width: 160,
                       child: ProductCard(
-                        id: product.id,
+                        id: product.varieties.first.id,
                         name: product.name,
                         price: variety.discountPrice,
                         originalPrice: variety.price,

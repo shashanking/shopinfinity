@@ -5,48 +5,99 @@ import 'dart:developer' as dev;
 
 import '../../../../core/services/product_service.dart';
 
-final bestSellerProductsProvider =
-    AsyncNotifierProvider<BestSellerProductsNotifier, ProductListResponse?>(
-  () => BestSellerProductsNotifier(),
-);
+class BestSellerProductsNotifier
+    extends StateNotifier<AsyncValue<ProductListResponse>> {
+  final ProductService _productService;
+  int _currentPage;
+  bool _isLoading = false;
+  static const int _pageSize = 50;
+  final bool _isAllProductsView;
 
-class BestSellerProductsNotifier extends AsyncNotifier<ProductListResponse?> {
-  late final ProductService _productService;
-
-  @override
-  Future<ProductListResponse?> build() async {
-    _productService = ref.read(productServiceProvider);
-    await loadBestSellerProducts();
-    return state.value;
+  BestSellerProductsNotifier(this._productService,
+      {bool isAllProductsView = false})
+      : _isAllProductsView = isAllProductsView,
+        _currentPage = isAllProductsView ? 1 : 20,
+        super(const AsyncValue.loading()) {
+    loadInitial();
   }
 
-  Future<void> loadBestSellerProducts({int page = 20}) async {
+  Future<void> loadInitial() async {
+    state = const AsyncValue.loading();
     try {
-      state = const AsyncValue.loading();
+      final response = await _productService.listProducts(
+        pageNo: _currentPage,
+        perPage: _isAllProductsView ? 50 : 20,
+        sortDirection: 'DESC',
+      );
+      state = AsyncValue.data(response);
+      _currentPage = _isAllProductsView ? 2 : 21;
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
 
-      dev.log('Starting to fetch best seller products from page $page...',
-          name: 'BestSellerProductsNotifier');
-      final startTime = DateTime.now();
+  Future<void> loadMore() async {
+    if (_isLoading || state.value?.isLastPage == true) return;
 
-      final products = await _productService.listProducts(
-        pageNo: page,
-        perPage: 20,
+    if (_isAllProductsView && (state.value?.content.length ?? 0) >= 200) {
+      return;
+    }
+
+    _isLoading = true;
+    try {
+      final response = await _productService.listProducts(
+        pageNo: _currentPage,
+        perPage: _isAllProductsView ? 200 : 20,
         sortDirection: 'DESC',
       );
 
-      final endTime = DateTime.now();
-      final duration = endTime.difference(startTime);
-      dev.log(
-          'Best seller products fetch completed in ${duration.inMilliseconds}ms',
-          name: 'BestSellerProductsNotifier');
-      dev.log('Loaded ${products.content.length} products from page $page',
-          name: 'BestSellerProductsNotifier');
+      if (state case AsyncData(value: final currentProducts)) {
+        final newContent = [...currentProducts.content, ...response.content];
+        final limitedContent =
+            _isAllProductsView ? newContent.take(200).toList() : newContent;
 
-      state = AsyncValue.data(products);
-    } catch (e, stack) {
-      dev.log('Error loading best seller products: $e',
-          name: 'BestSellerProductsNotifier', error: e, stackTrace: stack);
-      state = AsyncValue.error(e, stack);
+        state = AsyncValue.data(
+          ProductListResponse(
+            content: limitedContent,
+            totalPages: response.totalPages,
+            totalElements: response.totalElements,
+            isLastPage: _isAllProductsView
+                ? limitedContent.length >= 200
+                : response.isLastPage,
+            pageNumber: response.pageNumber,
+            pageSize: response.pageSize,
+          ),
+        );
+      }
+
+      _currentPage++;
+    } catch (error) {
+      print('Error loading more products: $error');
+    } finally {
+      _isLoading = false;
     }
   }
+
+  void refresh() {
+    _currentPage = _isAllProductsView ? 1 : 20;
+    loadInitial();
+  }
 }
+
+// Provider for home screen best seller products (20 per page)
+final bestSellerProductsProvider = StateNotifierProvider<
+    BestSellerProductsNotifier, AsyncValue<ProductListResponse>>(
+  (ref) => BestSellerProductsNotifier(
+    ref.watch(productServiceProvider),
+    isAllProductsView: false,
+  ),
+);
+
+// Provider for "See All" screen (50 per page, up to 200 products)
+final allBestSellerProductsProvider = StateNotifierProvider<
+    BestSellerProductsNotifier, AsyncValue<ProductListResponse>>(
+  (ref) => BestSellerProductsNotifier(
+    ref.watch(productServiceProvider),
+    isAllProductsView: true,
+  ),
+);

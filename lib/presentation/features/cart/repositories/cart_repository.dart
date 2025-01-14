@@ -25,10 +25,21 @@ class CartRepository {
         );
       }
 
+      // Check for error response
+      if (response.data['statusCode'] == 400) {
+        throw Exception(response.data['errorMessage'] ?? 'Failed to fetch cart');
+      }
+
       if (response.data == null || response.data['responseBody'] == null) {
         throw Exception('Invalid response from server');
       }
       return CartResponse.fromJson(response.data['responseBody']);
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final errorMessage = e.response?.data['errorMessage'] ?? 'Failed to fetch cart';
+        throw Exception(errorMessage);
+      }
+      throw Exception('Failed to fetch cart');
     } catch (e) {
       rethrow;
     }
@@ -71,6 +82,11 @@ class CartRepository {
         },
       );
       
+      // Check for error response
+      if (response.data['statusCode'] == 400) {
+        throw Exception(response.data['errorMessage'] ?? 'Failed to update cart');
+      }
+
       if (response.statusCode == 204 || response.data['statusCode'] == 204) {
         return const CartResponse(
           id: '',
@@ -90,6 +106,12 @@ class CartRepository {
       }
       
       return CartResponse.fromJson(response.data['responseBody']);
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final errorMessage = e.response?.data['errorMessage'] ?? 'Failed to update cart';
+        throw Exception(errorMessage);
+      }
+      throw Exception('Failed to update cart');
     } catch (e) {
       rethrow;
     }

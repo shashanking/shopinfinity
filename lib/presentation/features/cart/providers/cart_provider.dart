@@ -8,6 +8,9 @@ final cartRepositoryProvider = Provider<CartRepository>((ref) {
   return CartRepository(dio: dio);
 });
 
+// Track loading state for individual products
+final productLoadingProvider = StateProvider.family<bool, String>((ref, id) => false);
+
 final cartProvider = AsyncNotifierProvider<CartNotifier, CartResponse?>(() {
   return CartNotifier();
 });
@@ -44,7 +47,9 @@ class CartNotifier extends AsyncNotifier<CartResponse?> {
     required int quantity,
   }) async {
     try {
-      state = const AsyncValue.loading();
+      // Set loading state for this specific product
+      ref.read(productLoadingProvider(varietyId).notifier).state = true;
+      
       final repository = ref.read(cartRepositoryProvider);
       final response = await repository.updateCart(
         varietyId: varietyId,
@@ -52,11 +57,12 @@ class CartNotifier extends AsyncNotifier<CartResponse?> {
       );
       state = AsyncValue.data(response);
     } catch (e) {
-      // Keep the previous state on error
       state = AsyncValue.error(e, StackTrace.current);
-      // Refresh the cart after a short delay
       await Future.delayed(const Duration(seconds: 1));
       state = await AsyncValue.guard(() => _fetchCart());
+    } finally {
+      // Reset loading state for this specific product
+      ref.read(productLoadingProvider(varietyId).notifier).state = false;
     }
   }
 }

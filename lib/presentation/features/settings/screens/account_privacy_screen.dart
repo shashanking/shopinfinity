@@ -13,7 +13,13 @@ class AccountPrivacyScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF111827)),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/settings');
+            }
+          },
         ),
         title: const Text(
           'Account Privacy',
@@ -53,7 +59,8 @@ class AccountPrivacyScreen extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                         TextSpan(
-                          text: ', we are dedicated to safeguarding your privacy and ensuring the security of your personal information. This policy explains how we collect, use, and protect your data when you create an account and use our app.',
+                          text:
+                              ', we are dedicated to safeguarding your privacy and ensuring the security of your personal information. This policy explains how we collect, use, and protect your data when you create an account and use our app.',
                         ),
                       ],
                     ),
@@ -99,7 +106,8 @@ class AccountPrivacyScreen extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: 'You have the right to access, update, or delete your account information at any time. You can also opt out of promotional communications or request a copy of the data we hold about you by contacting us at ',
+                          text:
+                              'You have the right to access, update, or delete your account information at any time. You can also opt out of promotional communications or request a copy of the data we hold about you by contacting us at ',
                         ),
                         TextSpan(
                           text: 'support@shopinfinity.com',
@@ -134,7 +142,8 @@ class AccountPrivacyScreen extends StatelessWidget {
                       ),
                       children: [
                         TextSpan(
-                          text: 'If you have any questions or concerns about this policy, please reach out to us at ',
+                          text:
+                              'If you have any questions or concerns about this policy, please reach out to us at ',
                         ),
                         TextSpan(
                           text: 'support@shopinfinity.com',
@@ -160,35 +169,35 @@ class AccountPrivacyScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextButton(
-                onPressed: () {
-                  // TODO: Implement account deletion
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Delete Account',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFFEF4444),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // const SizedBox(height: 16),
+            // Container(
+            //   margin: const EdgeInsets.symmetric(horizontal: 16),
+            //   child: TextButton(
+            //     onPressed: () {
+            //       // TODO: Implement account deletion
+            //     },
+            //     style: TextButton.styleFrom(
+            //       backgroundColor: Colors.white,
+            //       padding: const EdgeInsets.all(16),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(12),
+            //       ),
+            //     ),
+            //     child: const Row(
+            //       mainAxisAlignment: MainAxisAlignment.center,
+            //       children: [
+            //         Text(
+            //           'Delete Account',
+            //           style: TextStyle(
+            //             fontSize: 16,
+            //             fontWeight: FontWeight.w500,
+            //             color: Color(0xFFEF4444),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 16),
           ],
         ),

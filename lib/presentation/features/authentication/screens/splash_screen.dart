@@ -1,22 +1,59 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/providers.dart';
+import 'dart:developer' as dev;
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  SplashScreenState createState() => SplashScreenState();
+  ConsumerState<SplashScreen> createState() => SplashScreenState();
 }
 
-class SplashScreenState extends State<SplashScreen> {
+class SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Show splash screen for minimum 3 seconds
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (!mounted) return;
+
+    try {
+      final storage = ref.read(storageServiceProvider);
+      final isLoggedIn = await storage.isLoggedIn();
+      dev.log('Splash: isLoggedIn = $isLoggedIn', name: 'SplashScreen');
+
+      if (!mounted) return;
+
+      if (isLoggedIn) {
+        dev.log('Splash: Navigating to shop', name: 'SplashScreen');
+        context.go('/shop');
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        final hasLaunchedBefore = prefs.getBool('has_launched_before') ?? false;
+        
+        if (!mounted) return;
+
+        if (!hasLaunchedBefore) {
+          await prefs.setBool('has_launched_before', true);
+        }
+        dev.log('Splash: Navigating to welcome', name: 'SplashScreen');
+        context.go('/welcome');
+      }
+    } catch (e) {
+      dev.log('Splash: Error during initialization: $e', name: 'SplashScreen');
+      if (!mounted) return;
       context.go('/welcome');
-    });
+    }
   }
 
   @override
@@ -27,30 +64,14 @@ class SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Text(
-            //   AppStrings.appName,
-            //   style: TextStyle(
-            //     color: Colors.white,
-            //     fontSize: 48,
-            //     fontWeight: FontWeight.w700,
-            //     fontFamily: 'Lato',
-            //     height: 1.2,
-            //     letterSpacing: 0.5,
-            //   ),
-            // ),
-            // SizedBox(height: 8),
-            // Text(
-            //   AppStrings.appTagline,
-            //   style: TextStyle(
-            //     color: Colors.white,
-            //     fontSize: 16,
-            //     fontWeight: FontWeight.w400,
-            //     fontFamily: 'Lato',
-            //   ),
-            // ),
-
-            //image from assets
-            Image.asset('assets/images/logo_splash.png', scale: 2),
+            Image.asset(
+              'assets/images/logo_splash.png',
+              scale: 2,
+            ),
+            const SizedBox(height: 32),
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
           ],
         ),
       ),

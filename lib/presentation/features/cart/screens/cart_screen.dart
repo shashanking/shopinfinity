@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shopinfinity/core/theme/app_colors.dart';
 import '../models/cart_response.dart';
 import '../overlays/add_address_overlay.dart';
 import '../overlays/select_address_overlay.dart';
@@ -15,7 +16,7 @@ class CartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartAsync = ref.watch(cartProvider);
     final addressAsync = ref.watch(addressProvider);
-    
+
     return cartAsync.when(
       loading: () => const Scaffold(
         body: Center(
@@ -125,7 +126,10 @@ class CartScreen extends ConsumerWidget {
                         vertical: 16,
                       ),
                     ),
-                    child: const Text('Start Shopping', style: TextStyle(color:  Color(0xFF2A4BA0)),),
+                    child: const Text(
+                      'Start Shopping',
+                      style: TextStyle(color: Color(0xFF2A4BA0)),
+                    ),
                   ),
                 ],
               ),
@@ -167,7 +171,8 @@ class CartScreen extends ConsumerWidget {
                 ),
                 Text(
                   '${cartItems.length} Item | Total ₹${totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
+                  style:
+                      const TextStyle(color: Color(0xFF6B7280), fontSize: 12),
                 ),
               ],
             ),
@@ -182,18 +187,21 @@ class CartScreen extends ConsumerWidget {
                     final item = cartItems[index];
                     return _buildCartItem(
                       item: item,
-                      onIncrement: () => ref.read(cartProvider.notifier).updateCart(
-                            varietyId: item.varietyId,
-                            quantity: item.boughtQuantity + 1,
-                          ),
-                      onDecrement: () => ref.read(cartProvider.notifier).updateCart(
-                            varietyId: item.varietyId,
-                            quantity: item.boughtQuantity - 1,
-                          ),
-                      onRemove: () => ref.read(cartProvider.notifier).updateCart(
-                            varietyId: item.varietyId,
-                            quantity: 0,
-                          ),
+                      onIncrement: () =>
+                          ref.read(cartProvider.notifier).updateCart(
+                                varietyId: item.varietyId,
+                                quantity: item.boughtQuantity + 1,
+                              ),
+                      onDecrement: () =>
+                          ref.read(cartProvider.notifier).updateCart(
+                                varietyId: item.varietyId,
+                                quantity: item.boughtQuantity - 1,
+                              ),
+                      onRemove: () =>
+                          ref.read(cartProvider.notifier).updateCart(
+                                varietyId: item.varietyId,
+                                quantity: 0,
+                              ),
                     );
                   },
                 ),
@@ -308,7 +316,8 @@ class CartScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     addressAsync.when(
                       data: (addressData) {
-                        if (addressData == null || addressData.content.isEmpty) {
+                        if (addressData == null ||
+                            addressData.content.isEmpty) {
                           return TextButton.icon(
                             onPressed: () {
                               showModalBottomSheet(
@@ -323,15 +332,18 @@ class CartScreen extends ConsumerWidget {
                           );
                         }
 
-                        final selectedAddress = ref.watch(selectedAddressProvider);
-                        if (selectedAddress == null) return const SizedBox.shrink();
-                        
+                        final selectedAddress =
+                            ref.watch(selectedAddressProvider);
+                        if (selectedAddress == null)
+                          return const SizedBox.shrink();
+
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                const Icon(Icons.location_on_outlined, size: 20, color: Color(0xFF6B7280)),
+                                const Icon(Icons.location_on_outlined,
+                                    size: 20, color: Color(0xFF6B7280)),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -348,7 +360,8 @@ class CartScreen extends ConsumerWidget {
                                       context: context,
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
-                                      builder: (context) => const SelectAddressOverlay(),
+                                      builder: (context) =>
+                                          const SelectAddressOverlay(),
                                     );
                                   },
                                   child: const Text('Change'),
@@ -383,11 +396,13 @@ class CartScreen extends ConsumerWidget {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          final selectedAddress = ref.read(selectedAddressProvider);
+                          final selectedAddress =
+                              ref.read(selectedAddressProvider);
                           if (selectedAddress == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Please select a delivery address'),
+                                content:
+                                    Text('Please select a delivery address'),
                               ),
                             );
                             return;
@@ -395,7 +410,7 @@ class CartScreen extends ConsumerWidget {
                           context.push('/cart/payment');
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2A4BA0),
+                          backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -499,42 +514,55 @@ class CartScreen extends ConsumerWidget {
               ],
             ),
           ),
-          Column(
-            children: [
-              Row(
-                children: [
-                  _buildIconButton(
-                    icon: Icons.remove,
-                    onPressed: onDecrement,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      '${item.boughtQuantity}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildIconButton(
+                      icon: Icons.add,
+                      onPressed: onIncrement,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${item.boughtQuantity}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  _buildIconButton(
-                    icon: Icons.add,
-                    onPressed: onIncrement,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: onRemove,
-                child: const Text(
-                  'Remove',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFFDC2626),
-                  ),
+                    _buildIconButton(
+                      icon: Icons.remove,
+                      onPressed: onDecrement,
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                // TextButton(
+                //   onPressed: onRemove,
+                //   child: const Text(
+                //     'Remove',
+                //     style: TextStyle(
+                //       fontSize: 12,
+                //       color: Color(0xFFDC2626),
+                //     ),
+                //   ),
+                // ),
+              ],
+            ),
           ),
         ],
       ),
@@ -550,13 +578,13 @@ class CartScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFF10B981).withOpacity(0.1),
+          // color: const Color(0xFF10B981).withOpacity(0.1),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Icon(
           icon,
-          size: 16,
-          color: const Color(0xFF10B981),
+          size: 18,
+          color: Colors.black,
         ),
       ),
     );

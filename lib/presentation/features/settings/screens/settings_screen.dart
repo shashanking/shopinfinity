@@ -70,10 +70,13 @@ class SettingsScreen extends ConsumerWidget {
                                 loading: () => 'Loading...',
                                 error: (_, __) => 'Guest',
                               ),
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: const Color(0xFF111827),
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                    color: const Color(0xFF111827),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -94,7 +97,8 @@ class SettingsScreen extends ConsumerWidget {
                         padding: EdgeInsets.only(right: 8),
                         child: Text(
                           'Version 1.1.21',
-                          style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                          style:
+                              TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
                         ),
                       ),
                     ],
@@ -120,21 +124,20 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'Orders',
                     onTap: () => context.push('/orders'),
                   ),
-                  
-                  _SettingsTile(
-                    icon: Icons.location_on_outlined,
-                    title: 'Address',
-                    onTap: () => context.push('/addresses'),
-                  ),
+                  // _SettingsTile(
+                  //   icon: Icons.location_on_outlined,
+                  //   title: 'Address',
+                  //   onTap: () => context.push('/addresses'),
+                  // ),
                   _SettingsTile(
                     icon: Icons.shield_outlined,
                     title: 'Account Privacy',
-                    onTap: () => context.go('/settings/privacy'),
+                    onTap: () => context.push('/settings/privacy'),
                   ),
                   _SettingsTile(
                     icon: Icons.info_outline,
                     title: 'About US',
-                    onTap: () => context.go('/settings/about'),
+                    onTap: () => context.push('/settings/about'),
                     showDivider: false,
                   ),
                   _SettingsTile(
@@ -150,7 +153,8 @@ class SettingsScreen extends ConsumerWidget {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Failed to logout. Please try again.'),
+                              content:
+                                  Text('Failed to logout. Please try again.'),
                             ),
                           );
                         }

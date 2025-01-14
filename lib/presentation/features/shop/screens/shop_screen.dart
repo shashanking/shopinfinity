@@ -130,6 +130,7 @@ class ShopScreen extends ConsumerWidget {
                   imageUrl: groceryCategory.subCategories[index].documentUrl,
                   isLarge: false,
                 ),
+                categoryName: groceryCategory.name,
               ),
             );
           },
@@ -167,6 +168,7 @@ class ShopScreen extends ConsumerWidget {
                       imageUrl: subCategory.documentUrl,
                       isLarge: isLarge,
                     ),
+                    categoryName: snacksCategory.name,
                   ),
                 );
               }),
@@ -206,6 +208,7 @@ class ShopScreen extends ConsumerWidget {
                       imageUrl: subCategory.documentUrl,
                       isLarge: isLarge,
                     ),
+                    categoryName: beautyCategory.name,
                   ),
                 );
               }),
@@ -224,27 +227,25 @@ class ShopScreen extends ConsumerWidget {
           data: (categoryResponse) {
             if (categoryResponse == null) return const SizedBox();
 
-            final groceryCategory = categoryResponse.categories
-                .firstWhere((cat) => cat.name == 'Grocery & Kitchen');
-
-            final householdCategory = groceryCategory.subCategories
-                .firstWhere((cat) => cat.name == 'Kitchenware & Appliances');
+            final householdCategory = categoryResponse.categories
+                .firstWhere((cat) => cat.name == 'Household Essentials');
 
             return Wrap(
               spacing: spacing,
               runSpacing: 30,
-              children: List.generate(householdCategory.subCategories.length,
-                  (index) {
+              children:
+                  List.generate(householdCategory.subCategories.length, (index) {
                 final subCategory = householdCategory.subCategories[index];
                 return SizedBox(
-                  width: (screenWidth - 44) / 2, // All items are large
+                  width: (screenWidth - 44) / 2, // All items are large with double width
                   height: 120,
                   child: CategoryCard(
                     item: CategoryItem(
                       name: subCategory.name,
                       imageUrl: subCategory.documentUrl,
-                      isLarge: true,
+                      isLarge: true, // Set all items to large
                     ),
+                    categoryName: householdCategory.name,
                   ),
                 );
               }),
