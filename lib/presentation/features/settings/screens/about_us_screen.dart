@@ -52,7 +52,7 @@ class AboutUsScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 16),
                 Text(
-                  'Welcome to Shop Infinity, your ultimate destination for groceries and daily essentials. We are more than just a shopping app; we are your reliable partner in simplifying your everyday needs. Operational in ',
+                  'Welcome to Shop Infinity, your ultimate destination for groceries and daily essentials. We are more than just a shopping app; we are your reliable partner in simplifying your everyday needs.',
                   style: TextStyle(
                     fontSize: 16,
                     color: Color(0xFF111827),

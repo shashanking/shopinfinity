@@ -112,10 +112,6 @@ Our app requires the following permissions:
 - Secure payment processing
 - Access controls and monitoring
 
-Contact us at:
-- Email: shashank06.dev@gmail.com
-- mobile: +91 98300 23456
-
 ---
 
 By using ShopInfinity, you agree to this Privacy Policy. For any concerns or requests regarding your privacy, please contact us using the information provided above.
