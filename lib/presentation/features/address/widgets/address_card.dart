@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../cart/models/delivery_address.dart';
-import '../../cart/providers/address_provider.dart';
+import '../../profile/models/address.dart';
 
 class AddressCard extends ConsumerWidget {
-  final DeliveryAddress address;
+  final Address address;
   final bool showDivider;
 
   const AddressCard({
@@ -17,8 +15,6 @@ class AddressCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fullAddress = '${address.landmark}, ${address.address}, ${address.city}, ${address.state} - ${address.pincode}';
-
     return Column(
       children: [
         Padding(
@@ -42,48 +38,57 @@ class AddressCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      address.label.substring(0, 1).toUpperCase() + address.label.substring(1),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF111827),
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          address.addressName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                        if (address.primaryAddress) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'DEFAULT',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      fullAddress,
+                      '${address.addressLine1}, ${address.landmark}, ${address.city}, ${address.state} - ${address.pincode}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF6B7280),
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit_outlined),
-                color: const Color(0xFF6B7280),
-                onPressed: () {
-                  context.go('/addresses/edit/${address.id}', extra: address);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline),
-                color: const Color(0xFFEF4444),
-                onPressed: () {
-                  ref.read(addressProvider.notifier).removeAddress(address.id);
-                },
               ),
             ],
           ),
         ),
         if (showDivider)
-          const Divider(
-            height: 1,
-            thickness: 1,
-            color: Color(0xFFE5E7EB),
-          ),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFE5E7EB)),
       ],
     );
   }

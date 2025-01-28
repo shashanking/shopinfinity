@@ -68,7 +68,7 @@ class SettingsScreen extends ConsumerWidget {
                               profile.when(
                                 data: (data) => data.name,
                                 loading: () => 'Loading...',
-                                error: (_, __) => 'Guest',
+                                error: (_, __) => 'Error loading profile',
                               ),
                               style: Theme.of(context)
                                   .textTheme
@@ -83,7 +83,7 @@ class SettingsScreen extends ConsumerWidget {
                               profile.when(
                                 data: (data) => data.mobile,
                                 loading: () => '',
-                                error: (_, __) => '',
+                                error: (_, __) => 'Please try again',
                               ),
                               style: const TextStyle(
                                 fontSize: 14,
@@ -124,11 +124,11 @@ class SettingsScreen extends ConsumerWidget {
                     title: 'Orders',
                     onTap: () => context.push('/orders'),
                   ),
-                  // _SettingsTile(
-                  //   icon: Icons.location_on_outlined,
-                  //   title: 'Address',
-                  //   onTap: () => context.push('/addresses'),
-                  // ),
+                  _SettingsTile(
+                    icon: Icons.location_on_outlined,
+                    title: 'Address',
+                    onTap: () => context.push('/addresses'),
+                  ),
                   _SettingsTile(
                     icon: Icons.shield_outlined,
                     title: 'Account Privacy',

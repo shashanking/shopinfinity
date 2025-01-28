@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hive/hive.dart';
 
 part 'auth_response.freezed.dart';
 part 'auth_response.g.dart';
@@ -29,18 +30,62 @@ class ResponseBody with _$ResponseBody {
       _$ResponseBodyFromJson(json);
 }
 
-@freezed
-class UserDetails with _$UserDetails {
-  const factory UserDetails({
-    required String id,
-    required String name,
-    required String email,
-    required String primaryPhoneNo,
-    String? secondaryPhoneNo,
-  }) = _UserDetails;
+@HiveType(typeId: 1)
+class UserDetails {
+  @HiveField(0)
+  final String? id;
+  @HiveField(1)
+  final String? name;
+  @HiveField(2)
+  final String? email;
+  @HiveField(3)
+  final String? primaryPhoneNo;
+  @HiveField(4)
+  final String? secondaryPhoneNo;
+  @HiveField(5)
+  final String? role;
+  @HiveField(6)
+  final bool? isActive;
+  @HiveField(7)
+  final String? createdAt;
+  @HiveField(8)
+  final String? updatedAt;
 
-  factory UserDetails.fromJson(Map<String, dynamic> json) =>
-      _$UserDetailsFromJson(json);
+  UserDetails({
+    this.id,
+    this.name,
+    this.email,
+    this.primaryPhoneNo,
+    this.secondaryPhoneNo,
+    this.role,
+    this.isActive,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory UserDetails.fromJson(Map<String, dynamic> json) => UserDetails(
+        id: json['id'] as String?,
+        name: json['name'] as String?,
+        email: json['email'] as String?,
+        primaryPhoneNo: json['primaryPhoneNo'] as String?,
+        secondaryPhoneNo: json['secondaryPhoneNo'] as String?,
+        role: json['role'] as String?,
+        isActive: json['isActive'] as bool?,
+        createdAt: json['createdAt'] as String?,
+        updatedAt: json['updatedAt'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'email': email,
+        'primaryPhoneNo': primaryPhoneNo,
+        'secondaryPhoneNo': secondaryPhoneNo,
+        'role': role,
+        'isActive': isActive,
+        'createdAt': createdAt,
+        'updatedAt': updatedAt,
+      };
 }
 
 int _statusCodeFromJson(dynamic value) {

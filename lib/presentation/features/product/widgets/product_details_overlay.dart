@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_view/photo_view.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/models/product/product.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -62,14 +63,16 @@ class _ProductDetailsOverlayState extends ConsumerState<ProductDetailsOverlay> {
                     onPressed: () => Navigator.pop(context),
                   ),
                   Expanded(
-                    child: Text(
-                      widget.product.name,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                    child: Flexible(
+                      child: Text(
+                        widget.product.name,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -86,38 +89,39 @@ class _ProductDetailsOverlayState extends ConsumerState<ProductDetailsOverlay> {
                     children: [
                       Stack(
                         children: [
-                          FlutterCarousel(
-                            options: CarouselOptions(
-                              height:
-                                  300, // Slightly reduced height for overlay
-                              showIndicator: true,
-                              slideIndicator: const CircularSlideIndicator(),
-                              onPageChanged: (index, _) {
-                                setState(() {
-                                  selectedImageIndex = index;
-                                });
-                              },
-                            ),
-                            items: variety.imageUrls.map((url) {
-                              return Builder(
-                                builder: (BuildContext context) {
-                                  return Container(
-                                    color: Colors.white,
-                                    padding: const EdgeInsets.all(24),
-                                    child: CachedNetworkImage(
-                                      imageUrl: url,
-                                      fit: BoxFit.contain,
-                                      placeholder: (context, url) =>
-                                          const Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          const Icon(Icons.error),
-                                    ),
-                                  );
+                          Container(
+                            color: Colors.white,
+                            child: FlutterCarousel(
+                              options: CarouselOptions(
+                                height:
+                                    300, // Slightly reduced height for overlay
+                                showIndicator: true,
+                                slideIndicator: const CircularSlideIndicator(),
+                                onPageChanged: (index, _) {
+                                  setState(() {
+                                    selectedImageIndex = index;
+                                  });
                                 },
-                              );
-                            }).toList(),
+                              ),
+                              items: variety.imageUrls.map((imageUrl) {
+                                return Container(
+                                  color: Colors.white,
+                                  child: SizedBox(
+                                    height: 250,
+                                    child: PhotoView(
+                                      imageProvider:
+                                          CachedNetworkImageProvider(imageUrl),
+                                      minScale:
+                                          PhotoViewComputedScale.contained,
+                                      maxScale:
+                                          PhotoViewComputedScale.covered * 2,
+                                      backgroundDecoration: const BoxDecoration(
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
                           if (discount > 0)
                             Positioned(
@@ -144,7 +148,8 @@ class _ProductDetailsOverlayState extends ConsumerState<ProductDetailsOverlay> {
                             ),
                         ],
                       ),
-                      Padding(
+                      Container(
+                        color: Colors.white,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,57 +225,68 @@ class _ProductDetailsOverlayState extends ConsumerState<ProductDetailsOverlay> {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            const Text(
-                              'Product Details',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Description',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              widget.product.description,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF8891A5),
-                                height: 1.5,
-                              ),
-                              maxLines: isExpanded ? null : 3,
-                              overflow:
-                                  isExpanded ? null : TextOverflow.ellipsis,
-                            ),
-                            if (widget.product.description.length > 150)
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    isExpanded = !isExpanded;
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    isExpanded
-                                        ? 'View less details'
-                                        : 'View more details',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w500,
+                            Container(
+                              color: Colors.white,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Product Details',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
                                     ),
-                                  ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Description',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      widget.product.description,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Color(0xFF6B7280),
+                                        height: 1.5,
+                                      ),
+                                      maxLines: isExpanded ? null : 3,
+                                      overflow: isExpanded
+                                          ? null
+                                          : TextOverflow.ellipsis,
+                                    ),
+                                    if (widget.product.description.length > 150)
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            isExpanded = !isExpanded;
+                                          });
+                                        },
+                                        child: Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 4),
+                                          child: Text(
+                                            isExpanded
+                                                ? 'View less details'
+                                                : 'View more details',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    const SizedBox(height: 16),
+                                  ],
                                 ),
                               ),
-                            const SizedBox(height: 16),
+                            ),
                           ],
                         ),
                       ),

@@ -17,7 +17,7 @@ class ProductService {
 
   Future<ProductListResponse> listProducts({
     int pageNo = 1,
-    int perPage = 10,
+    int perPage = 300,
     String? category,
     String? subCategory,
     String? subCategory2,
@@ -70,7 +70,11 @@ class ProductService {
             name: 'ProductService');
       }
 
+      // Log the response data
+      dev.log('Response Data: ${response.data}', name: 'ProductService');
+
       if (response.data == null) {
+        dev.log('No data received from API', name: 'ProductService');
         throw ApiException(
           message: 'No data received from API',
           statusCode: response.statusCode,
@@ -78,12 +82,10 @@ class ProductService {
       }
 
       if (response.statusCode != 200) {
-        final errorMessage = response.data is Map
-            ? response.data['message'] ?? 'Failed to fetch products'
-            : 'Failed to fetch products';
-
+        dev.log('API call failed with status: ${response.statusCode}',
+            name: 'ProductService');
         throw ApiException(
-          message: errorMessage,
+          message: 'API call failed',
           statusCode: response.statusCode,
         );
       }

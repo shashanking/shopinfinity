@@ -1,111 +1,109 @@
 import 'dart:developer' as dev;
 import 'package:hive_flutter/hive_flutter.dart';
-
 import '../models/auth/auth_response.dart';
+
 class StorageService {
-  late Box _box;
+  late Box<String> _tokenBox;
+  late Box<Map> _userBox;
+  bool _isInitialized = false;
   static const String _tokenKey = 'token';
   static const String _userDetailsKey = 'user_details';
 
   Future<void> init() async {
+    if (_isInitialized) {
+      dev.log('Storage service already initialized', name: 'StorageService');
+      return;
+    }
+
     try {
+      dev.log('Initializing Hive...', name: 'StorageService');
       await Hive.initFlutter();
-      _box = await Hive.openBox('shopinfinity');
-      dev.log('Storage initialized', name: 'StorageService');
+
+      // Register adapters
+      if (!Hive.isAdapterRegistered(1)) {
+        Hive.registerAdapter(UserDetailsAdapter());
+      }
+
+      dev.log('Opening storage boxes...', name: 'StorageService');
+      _tokenBox = await Hive.openBox<String>('shopinfinity_token');
+      _userBox = await Hive.openBox<Map>('shopinfinity_user');
+
+      _isInitialized = true;
+      dev.log('Storage service initialized successfully',
+          name: 'StorageService');
     } catch (e, stack) {
-      dev.log('Error initializing storage: $e\n$stack',
-          name: 'StorageService', error: e, stackTrace: stack);
+      dev.log('Error initializing storage service: $e\n$stack',
+          name: 'StorageService', error: e);
       rethrow;
+    }
+  }
+
+  Future<void> ensureInitialized() async {
+    if (!_isInitialized) {
+      dev.log('Storage not initialized, initializing now...',
+          name: 'StorageService');
+      await init();
     }
   }
 
   Future<void> saveToken(String token) async {
-    try {
-      // Ensure token has Bearer prefix
-      final formattedToken = token.startsWith('Bearer ') ? token : 'Bearer $token';
-      await _box.put(_tokenKey, formattedToken);
-      dev.log('Saved token: $formattedToken', name: 'StorageService');
-    } catch (e, stack) {
-      dev.log('Error saving token: $e\n$stack',
-          name: 'StorageService', error: e, stackTrace: stack);
-      rethrow;
-    }
+    await ensureInitialized();
+    dev.log('Saving token...', name: 'StorageService');
+    await _tokenBox.put(_tokenKey, token);
+    dev.log('Token saved successfully', name: 'StorageService');
   }
 
   Future<String?> getToken() async {
-    try {
-      final token = await _box.get(_tokenKey) as String?;
-      dev.log('Retrieved token: $token', name: 'StorageService');
-      
-      if (token == null) {
-        dev.log('No token found in storage', name: 'StorageService');
-        return null;
-      }
-      
-      // Ensure token has Bearer prefix
-      if (!token.startsWith('Bearer ')) {
-        final formattedToken = 'Bearer $token';
-        dev.log('Adding Bearer prefix to token: $formattedToken', name: 'StorageService');
-        await saveToken(formattedToken);
-        return formattedToken;
-      }
-      
-      return token;
-    } catch (e, stack) {
-      dev.log('Error getting token: $e\n$stack',
-          name: 'StorageService', error: e, stackTrace: stack);
-      rethrow;
-    }
+    await ensureInitialized();
+    return _tokenBox.get(_tokenKey);
   }
 
   Future<void> saveUserDetails(UserDetails userDetails) async {
-    try {
-      await _box.put(_userDetailsKey, userDetails.toJson());
-      dev.log('Saved user details', name: 'StorageService');
-    } catch (e, stack) {
-      dev.log('Error saving user details: $e\n$stack',
-          name: 'StorageService', error: e, stackTrace: stack);
-      rethrow;
-    }
+    await ensureInitialized();
+    dev.log('Saving user details...', name: 'StorageService');
+    await _userBox.put(_userDetailsKey, userDetails.toJson());
+    dev.log('User details saved successfully', name: 'StorageService');
   }
 
   Future<UserDetails?> getUserDetails() async {
-    try {
-      final userDetailsJson = await _box.get(_userDetailsKey);
-      if (userDetailsJson == null) {
-        dev.log('No user details found in storage', name: 'StorageService');
-        return null;
-      }
-      final userDetails = UserDetails.fromJson(userDetailsJson);
-      dev.log('Retrieved user details', name: 'StorageService');
-      return userDetails;
-    } catch (e, stack) {
-      dev.log('Error getting user details: $e\n$stack',
-          name: 'StorageService', error: e, stackTrace: stack);
-      rethrow;
+    await ensureInitialized();
+    final data = _userBox.get(_userDetailsKey);
+    if (data != null) {
+      return UserDetails.fromJson(Map<String, dynamic>.from(data));
     }
+    return null;
   }
 
   Future<bool> isLoggedIn() async {
-    try {
-      final token = await getToken();
-      dev.log('Checking login status: ${token != null} (token: $token)',
-          name: 'StorageService');
-      return token != null;
-    } catch (e, stack) {
-      dev.log('Error checking login status: $e\n$stack',
-          name: 'StorageService', error: e, stackTrace: stack);
-      return false;
-    }
+    await ensureInitialized();
+    final token = await getToken();
+    final userDetails = await getUserDetails();
+    dev.log(
+        'Checking login status: token=${token != null}, userDetails=${userDetails != null}',
+        name: 'StorageService');
+    return token != null && userDetails != null;
   }
 
   Future<void> clearAll() async {
+    await ensureInitialized();
+    dev.log('Clearing all storage...', name: 'StorageService');
     try {
-      await _box.clear();
-      dev.log('Cleared all storage', name: 'StorageService');
+      await Future.wait([
+        _tokenBox.clear(),
+        _userBox.clear(),
+      ]);
+      dev.log('Storage cleared successfully', name: 'StorageService');
     } catch (e, stack) {
       dev.log('Error clearing storage: $e\n$stack',
-          name: 'StorageService', error: e, stackTrace: stack);
+          name: 'StorageService', error: e);
+      // Attempt to close and delete the boxes in case of corruption
+      await _tokenBox.close();
+      await _userBox.close();
+      await Hive.deleteBoxFromDisk('shopinfinity_token');
+      await Hive.deleteBoxFromDisk('shopinfinity_user');
+      // Re-initialize the boxes
+      _tokenBox = await Hive.openBox<String>('shopinfinity_token');
+      _userBox = await Hive.openBox<Map>('shopinfinity_user');
       rethrow;
     }
   }

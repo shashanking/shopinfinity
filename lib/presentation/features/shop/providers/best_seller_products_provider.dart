@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopinfinity/core/models/product/product.dart';
 import 'package:shopinfinity/core/providers/providers.dart';
-import 'dart:developer' as dev;
 
 import '../../../../core/services/product_service.dart';
 
@@ -10,13 +9,13 @@ class BestSellerProductsNotifier
   final ProductService _productService;
   int _currentPage;
   bool _isLoading = false;
-  static const int _pageSize = 50;
+  static const int _pageSize = 300;
   final bool _isAllProductsView;
 
   BestSellerProductsNotifier(this._productService,
       {bool isAllProductsView = false})
       : _isAllProductsView = isAllProductsView,
-        _currentPage = isAllProductsView ? 1 : 20,
+        _currentPage = 1,
         super(const AsyncValue.loading()) {
     loadInitial();
   }
@@ -26,7 +25,7 @@ class BestSellerProductsNotifier
     try {
       final response = await _productService.listProducts(
         pageNo: _currentPage,
-        perPage: _isAllProductsView ? 50 : 20,
+        perPage: _isAllProductsView ? _pageSize : 20,
         sortDirection: 'DESC',
       );
       state = AsyncValue.data(response);
@@ -72,7 +71,6 @@ class BestSellerProductsNotifier
 
       _currentPage++;
     } catch (error) {
-      print('Error loading more products: $error');
     } finally {
       _isLoading = false;
     }
