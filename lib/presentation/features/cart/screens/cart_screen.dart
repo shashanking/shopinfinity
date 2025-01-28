@@ -334,8 +334,9 @@ class CartScreen extends ConsumerWidget {
 
                         final selectedAddress =
                             ref.watch(selectedAddressProvider);
-                        if (selectedAddress == null)
+                        if (selectedAddress == null) {
                           return const SizedBox.shrink();
+                        }
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

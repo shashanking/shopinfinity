@@ -113,29 +113,6 @@ class _BestSellerProductsScreenState
             );
           },
         ),
-        if (products.length >= 200)
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Showing top 200 best selling products',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }

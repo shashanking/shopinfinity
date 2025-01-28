@@ -15,16 +15,15 @@ class CategoryProductsNotifier
     extends StateNotifier<AsyncValue<ProductListResponse>> {
   final Ref _ref;
   final String? _subCategory;
-  String? _parentSubCategory;
+  // String? _parentSubCategory;
   bool _isSubCategory2;
   int _currentPage = 1;
   bool _isLoading = false;
-  static const int _pageSize = 20;
   bool _mounted = true;
 
   CategoryProductsNotifier(this._ref, this._subCategory)
       : _isSubCategory2 = false,
-        _parentSubCategory = null,
+        // _parentSubCategory = null,
         super(const AsyncValue.loading()) {
     loadInitial();
   }
@@ -37,7 +36,7 @@ class CategoryProductsNotifier
 
   void setParentSubCategory(String? parentSubCategory) {
     if (!_mounted) return;
-    _parentSubCategory = parentSubCategory;
+    // _parentSubCategory = parentSubCategory;
   }
 
   void setIsSubCategory2(bool value) {
@@ -54,28 +53,23 @@ class CategoryProductsNotifier
       final productService = _ref.read(productServiceProvider);
 
       if (_isSubCategory2) {
-        // For subCategory2, we need both parent subcategory and subcategory2
-        if (_parentSubCategory == null) {
-          dev.log('Error: Parent subcategory is null for subcategory2 view');
-          state = const AsyncValue.error(
-              'Parent subcategory is required', StackTrace.empty);
-          return;
-        }
-
-        dev.log(
-            'Fetching products for subCategory2: $_subCategory with parent: $_parentSubCategory');
+        dev.log('Fetching products for subCategory2: $_subCategory');
         final products = await productService.listProducts(
-          subCategory: _parentSubCategory, // Pass the parent subcategory
-          subCategory2:
-              _subCategory, // Pass the current subcategory as subCategory2
+          subCategory2: _subCategory,
           pageNo: 1,
-          perPage: 100,
         );
 
         dev.log(
             'Raw response for subCategory2: ${products.content.length} products');
         if (products.content.isNotEmpty) {
           dev.log('First product: ${products.content.first.toJson()}');
+          for (var product in products.content) {
+            dev.log(
+                'Product ${product.name}: ${product.varieties.length} varieties');
+            if (product.varieties.isEmpty) {
+              dev.log('Product ${product.name} has no varieties');
+            }
+          }
         }
 
         if (!_mounted) return;
@@ -89,27 +83,26 @@ class CategoryProductsNotifier
           ProductListResponse(
             content: validProducts,
             totalPages: products.totalPages,
-            totalElements: validProducts.length,
-            isLastPage: true,
+            totalElements: products.totalElements,
+            isLastPage: products.isLastPage,
             pageNumber: products.pageNumber,
             pageSize: products.pageSize,
           ),
         );
 
+        _currentPage = 2;
         dev.log(
             'Fetched ${validProducts.length} valid products for subCategory2: $_subCategory');
       } else {
-        // For main subcategory, use pagination
+        // For main subcategory view
         dev.log('Fetching products for subCategory: $_subCategory');
         final products = await productService.listProducts(
           subCategory: _subCategory,
           pageNo: 1,
-          perPage: _pageSize,
         );
 
         if (!_mounted) return;
 
-        // Filter out products without varieties
         final validProducts =
             products.content.where((p) => p.varieties.isNotEmpty).toList();
         dev.log('Valid products (with varieties): ${validProducts.length}');
@@ -137,24 +130,22 @@ class CategoryProductsNotifier
   }
 
   Future<void> loadMore() async {
-    // Only load more for main subcategory view
-    if (_isSubCategory2) return;
     if (!_mounted) return;
     if (_isLoading || state.value?.isLastPage == true) return;
 
     _isLoading = true;
     try {
       final productService = _ref.read(productServiceProvider);
+
       final response = await productService.listProducts(
-        subCategory: _subCategory,
+        subCategory: _isSubCategory2 ? null : _subCategory,
+        subCategory2: _isSubCategory2 ? _subCategory : null,
         pageNo: _currentPage,
-        perPage: _pageSize,
       );
 
       if (!_mounted) return;
 
       if (state case AsyncData(value: final currentProducts)) {
-        // Filter out products without varieties
         final validNewProducts =
             response.content.where((p) => p.varieties.isNotEmpty).toList();
         final newContent = [...currentProducts.content, ...validNewProducts];

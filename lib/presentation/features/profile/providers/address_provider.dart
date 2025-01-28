@@ -30,7 +30,7 @@ class AddressNotifier extends StateNotifier<AsyncValue<AddressResponse?>> {
       }
     } catch (e) {
       if (mounted) {
-        state = AsyncValue.data(const AddressResponse(
+        state = const AsyncValue.data(AddressResponse(
           perPage: 0,
           pageNo: 0,
           sortBy: '',
@@ -67,7 +67,7 @@ class AddressNotifier extends StateNotifier<AsyncValue<AddressResponse?>> {
       await _fetchAddresses();
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
-      throw e; // Re-throw to handle in UI
+      rethrow; // Re-throw to handle in UI
     }
   }
 }

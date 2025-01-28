@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/settings_screen.dart';
 import '../screens/privacy_policy_screen.dart';

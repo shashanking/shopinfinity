@@ -47,6 +47,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       if (mounted) {
         if (response?.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  Text('OTP sent successfully to +91 ${_phoneController.text}'),
+              backgroundColor: Colors.green,
+            ),
+          );
           context.replace('/otp', extra: _phoneController.text);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

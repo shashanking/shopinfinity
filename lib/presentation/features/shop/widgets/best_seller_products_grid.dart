@@ -15,7 +15,7 @@ class BestSellerProductsGrid extends ConsumerWidget {
 
     return bestSellerProductsState.when(
       data: (productResponse) {
-        if (productResponse == null || productResponse.content.isEmpty) {
+        if (productResponse.content.isEmpty) {
           return const Center(child: Text('No best seller products found'));
         }
 
@@ -71,7 +71,7 @@ class BestSellerProductsGrid extends ConsumerWidget {
                         originalPrice: variety.price,
                         imageUrl: variety.imageUrls.isNotEmpty
                             ? variety.imageUrls.first
-                            : 'assets/images/banana.png',
+                            : 'assets/images/no_image.png',
                         discount: variety.discountPercent.round(),
                         unit: '${variety.value}${variety.unit}',
                         onTap: () {

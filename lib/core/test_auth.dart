@@ -7,13 +7,17 @@ void main() async {
   final storageService = StorageService();
   await storageService.init();
   dev.log('Storage service initialized', name: 'TestAuth');
-  
+
   final apiClient = ApiClient(storageService: storageService);
   dev.log('API client initialized', name: 'TestAuth');
-  
-  final authService = AuthService(apiClient: apiClient);
+
+  final authService = AuthService(
+    apiClient: apiClient,
+    dio: apiClient.dio,
+    storageService: storageService,
+  );
   dev.log('Auth service initialized', name: 'TestAuth');
-  
+
   const phoneNumber = '9380969957';
   const otp = '4444';
 
@@ -24,7 +28,8 @@ void main() async {
 
     dev.log('Verifying OTP...', name: 'TestAuth');
     final verifyOtpResponse = await authService.verifyOtp(phoneNumber, otp);
-    dev.log('Verify OTP Response: ${verifyOtpResponse.toJson()}', name: 'TestAuth');
+    dev.log('Verify OTP Response: ${verifyOtpResponse.toJson()}',
+        name: 'TestAuth');
 
     // For login, we should use username and password
     dev.log('Logging in...', name: 'TestAuth');

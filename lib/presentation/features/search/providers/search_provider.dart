@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:developer' as dev;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/models/product/product.dart';
@@ -53,38 +56,37 @@ class SearchNotifier extends StateNotifier<SearchState> {
   }
 
   Future<void> search(String query) async {
-    if (query.isEmpty) {
-      state = state.copyWith(searchResults: [], isLoading: false);
-      return;
-    }
-
-    state = state.copyWith(isLoading: true);
+    dev.log(
+        'Starting search with query: \\${query.isEmpty ? "empty (all products)" : query}',
+        name: 'SearchProvider');
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
-      print('Searching for: $query'); // Debug print
-      
-      // Use the product list API with name parameter only
+      dev.log('Fetching products...', name: 'SearchProvider');
       final response = await _productService.listProducts(
-        name: query,
+        name: query.isEmpty ? null : query,
         pageNo: 1,
         perPage: 50,
       );
-      
-      print('Search results count: ${response.content.length}'); // Debug print
 
-      // Add to recent searches if we have results
-      if (query.length > 2 && response.content.isNotEmpty) {
+      dev.log('Received \\${response.content.length} products',
+          name: 'SearchProvider');
+
+      // Add to recent searches if we have results and query is not empty
+      if (query.isNotEmpty && query.length > 2 && response.content.isNotEmpty) {
         await addToRecentSearches(query);
       }
 
       state = state.copyWith(
         searchResults: response.content,
         isLoading: false,
+        error: null,
       );
-    } catch (e, stackTrace) {
-      print('Search error: $e'); // Debug print
-      print('Stack trace: $stackTrace'); // Debug print
+      dev.log('Search completed successfully', name: 'SearchProvider');
+    } catch (e) {
+      dev.log('Error during search: \\$e', name: 'SearchProvider', error: e);
       state = state.copyWith(
+        searchResults: [],
         error: 'Failed to search products',
         isLoading: false,
       );
@@ -93,13 +95,13 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   Future<void> addToRecentSearches(String query) async {
     final searches = List<String>.from(state.recentSearches);
-    
+
     // Remove if already exists
     searches.remove(query);
-    
+
     // Add to the beginning
     searches.insert(0, query);
-    
+
     // Keep only the most recent searches
     if (searches.length > kMaxRecentSearches) {
       searches.removeLast();
@@ -108,7 +110,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     // Update Hive and state
     await _recentSearchesBox.clear();
     await _recentSearchesBox.addAll(searches);
-    
+
     state = state.copyWith(recentSearches: searches);
   }
 
@@ -119,7 +121,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
     // Update Hive and state
     await _recentSearchesBox.clear();
     await _recentSearchesBox.addAll(searches);
-    
+
     state = state.copyWith(recentSearches: searches);
   }
 
@@ -129,6 +131,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
   }
 }
 
-final searchProvider = StateNotifierProvider<SearchNotifier, SearchState>((ref) {
+final searchProvider =
+    StateNotifierProvider<SearchNotifier, SearchState>((ref) {
   return SearchNotifier(ref);
 });

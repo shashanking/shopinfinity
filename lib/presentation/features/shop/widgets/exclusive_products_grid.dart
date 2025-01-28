@@ -15,7 +15,7 @@ class ExclusiveProductsGrid extends ConsumerWidget {
 
     return exclusiveProductsState.when(
       data: (productResponse) {
-        if (productResponse == null || productResponse.content.isEmpty) {
+        if (productResponse.content.isEmpty) {
           return const Center(child: Text('No exclusive products found'));
         }
 

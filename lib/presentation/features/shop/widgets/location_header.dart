@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../features/profile/providers/profile_provider.dart';
+import '../../../features/cart/providers/cart_provider.dart';
 
 class LocationHeader extends ConsumerWidget {
   const LocationHeader({super.key});
@@ -10,6 +11,7 @@ class LocationHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider);
+    final cartAsync = ref.watch(cartProvider);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -60,7 +62,7 @@ class LocationHeader extends ConsumerWidget {
                         Text(
                           'Hi, ${profile.when(
                             data: (data) => data.name,
-                            loading: () => 'Guest',
+                            loading: () => ' ',
                             error: (_, __) => 'Guest',
                           )}',
                           style: Theme.of(
@@ -80,27 +82,38 @@ class LocationHeader extends ConsumerWidget {
                   Builder(
                     builder: (context) => IconButton(
                       onPressed: () => GoRouter.of(context).push('/cart'),
-                      icon: const Icon(Icons.shopping_cart_outlined),
+                      icon: Image.asset(
+                        'assets/icons/cart.png',
+                        width: 24,
+                        height: 24,
+                      ),
                     ),
                   ),
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Text(
-                        '1',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                  cartAsync.when(
+                    data: (cart) =>
+                        cart != null && cart.boughtProductDetailsList.isNotEmpty
+                            ? Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).primaryColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '${cart.boughtProductDetailsList.length}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const SizedBox(),
+                    loading: () => const SizedBox(),
+                    error: (_, __) => const SizedBox(),
                   ),
                 ],
               ),

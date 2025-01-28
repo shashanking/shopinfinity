@@ -53,7 +53,6 @@ class ApiException implements Exception {
             }
           } catch (e) {
             // If we can't parse the error message, use the default
-            print('Error parsing error message: $e');
           }
         }
         return ApiException(

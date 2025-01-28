@@ -6,28 +6,35 @@ import 'package:shopinfinity/core/services/storage_service.dart';
 import 'dart:developer' as dev;
 
 class ApiClient {
-  late final Dio dio;
+  late Dio _dio;
   final StorageService storageService;
+
+  Dio get dio => _dio;
 
   ApiClient({required this.storageService}) {
     dev.log('Initializing API client with storage service', name: 'ApiClient');
-    dio = Dio(
-      BaseOptions(
-        baseUrl: ApiConfig.baseUrl,
-        connectTimeout: const Duration(milliseconds: ApiConfig.connectionTimeout),
-        receiveTimeout: const Duration(milliseconds: ApiConfig.receiveTimeout),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        validateStatus: (status) {
-          return status != null && status < 500;
-        },
-      ),
-    );
+    _dio = _createDio();
+    _addInterceptors();
+    dev.log('API client initialized with interceptors', name: 'ApiClient');
+  }
 
-    // Add interceptors
-    dio.interceptors.addAll([
+  Dio _createDio() {
+    return Dio(BaseOptions(
+      baseUrl: ApiConfig.baseUrl,
+      connectTimeout: const Duration(milliseconds: ApiConfig.connectionTimeout),
+      receiveTimeout: const Duration(milliseconds: ApiConfig.receiveTimeout),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      validateStatus: (status) {
+        return status != null && status < 500;
+      },
+    ));
+  }
+
+  void _addInterceptors() {
+    _dio.interceptors.addAll([
       AuthInterceptor(storageService: storageService),
       PrettyDioLogger(
         requestHeader: true,
@@ -36,7 +43,20 @@ class ApiClient {
         responseBody: true,
       ),
     ]);
-    dev.log('API client initialized with interceptors', name: 'ApiClient');
+  }
+
+  /// Updates the Dio instance with a new one and resets interceptors
+  void updateDio([Dio? newDio]) {
+    dev.log('Updating Dio instance...', name: 'ApiClient');
+
+    // Close the existing Dio instance if it exists
+    _dio.close(force: true);
+
+    // Create a new Dio instance if one wasn't provided
+    _dio = newDio ?? _createDio();
+    _addInterceptors();
+
+    dev.log('Dio instance updated with new interceptors', name: 'ApiClient');
   }
 
   Future<Response> get(
@@ -47,7 +67,7 @@ class ApiClient {
     ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      return await dio.get(
+      return await _dio.get(
         path,
         queryParameters: queryParameters,
         options: options,
@@ -70,7 +90,7 @@ class ApiClient {
     ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      return await dio.post(
+      return await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
@@ -95,7 +115,7 @@ class ApiClient {
     ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      return await dio.put(
+      return await _dio.put(
         path,
         data: data,
         queryParameters: queryParameters,
@@ -118,7 +138,7 @@ class ApiClient {
     CancelToken? cancelToken,
   }) async {
     try {
-      return await dio.delete(
+      return await _dio.delete(
         path,
         data: data,
         queryParameters: queryParameters,

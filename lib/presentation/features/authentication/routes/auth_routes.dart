@@ -1,7 +1,6 @@
 import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shopinfinity/core/providers/providers.dart';
 import 'package:shopinfinity/presentation/features/authentication/screens/login_screen.dart';

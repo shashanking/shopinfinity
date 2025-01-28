@@ -42,7 +42,7 @@ class UserDetails with _$UserDetails {
     required String name,
     required String email,
     required String primaryPhoneNo,
-    required String secondaryPhoneNo,
+    String? secondaryPhoneNo,
   }) = _UserDetails;
 
   factory UserDetails.fromJson(Map<String, dynamic> json) =>

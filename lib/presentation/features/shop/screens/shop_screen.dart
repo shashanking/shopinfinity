@@ -269,10 +269,6 @@ class ShopScreen extends ConsumerWidget {
 
         return productsAsyncValue.when(
           data: (products) {
-            if (products == null) {
-              return const SizedBox();
-            }
-
             return const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -66,6 +66,23 @@ class _CategoryProductsScreenState
     }
   }
 
+  void _onSubCategory2Selected(SubCategory2 subCategory2) {
+    // First update the UI state
+    setState(() {
+      selectedSubCategory2 = subCategory2.name;
+    });
+
+    // Then set up the provider and trigger a load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier =
+          ref.read(categoryProductsProvider(subCategory2.name).notifier);
+      notifier.setParentSubCategory(widget.subCategoryName);
+      notifier.setIsSubCategory2(true);
+      dev.log(
+          'Selected subcategory2: ${subCategory2.name} under parent: ${widget.subCategoryName}');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // If selectedSubCategory2 is empty, show products for the main subcategory
@@ -111,8 +128,8 @@ class _CategoryProductsScreenState
             Text(
               productsAsync.when(
                 data: (data) => '${data.content.length} items',
-                loading: () => '${widget.itemCount} items',
-                error: (_, __) => '${widget.itemCount} items',
+                loading: () => 'Loading...',
+                error: (_, __) => '0 items',
               ),
               style: const TextStyle(
                 fontSize: 12,
@@ -166,22 +183,7 @@ class _CategoryProductsScreenState
                       name: subCategory2.name,
                       imageUrl: subCategory2.documentUrl,
                       isSelected: selectedSubCategory2 == subCategory2.name,
-                      onTap: () {
-                        // First set up the provider with the correct configuration
-                        final notifier = ref.read(
-                            categoryProductsProvider(subCategory2.name)
-                                .notifier);
-                        notifier.setParentSubCategory(widget.subCategoryName);
-                        notifier.setIsSubCategory2(true);
-
-                        // Then update the UI state
-                        setState(() {
-                          selectedSubCategory2 = subCategory2.name;
-                        });
-
-                        dev.log(
-                            'Selected subcategory2: ${subCategory2.name} under parent: ${widget.subCategoryName}');
-                      },
+                      onTap: () => _onSubCategory2Selected(subCategory2),
                     );
                   },
                 );

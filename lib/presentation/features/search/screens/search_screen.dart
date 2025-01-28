@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shopinfinity/presentation/features/search/overlays/filter_overlay.dart';
 import '../../../../core/models/product/product.dart';
 import '../../../../core/utils/product_mapper.dart';
 import '../widgets/recent_search_chip.dart';
@@ -28,9 +27,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialQuery);
-    if (widget.initialQuery != null) {
-      _search(widget.initialQuery!);
-    }
+
+    // Delay the search call until after the widget tree is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load all products initially
+      ref.read(searchProvider.notifier).search('');
+      if (widget.initialQuery != null) {
+        _search(widget.initialQuery!);
+      }
+    });
   }
 
   @override
@@ -43,7 +48,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void _search(String query) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      print('Searching for: $query'); // Debug print
+      // Debug print
       ref.read(searchProvider.notifier).search(query);
     });
   }
@@ -101,8 +106,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(searchProvider);
-    print(
-        'Current search results: ${state.searchResults.length}'); // Debug print
 
     return Scaffold(
       body: SafeArea(
@@ -167,33 +170,43 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  // GestureDetector(
-                  //   onTap: () {
-                  //     showModalBottomSheet(
-                  //       context: context,
-                  //       isScrollControlled: true,
-                  //       backgroundColor: Colors.transparent,
-                  //       builder: (context) => const FilterOverlay(),
-                  //     );
-                  //   },
-                  //   child: Container(
-                  //     width: 45,
-                  //     height: 50,
-                  //     decoration: BoxDecoration(
-                  //       color: Colors.grey[200],
-                  //       borderRadius: BorderRadius.circular(12),
-                  //     ),
-                  //     child: const Icon(
-                  //       Icons.filter_list,
-                  //       color: Color(0xFF1E222B),
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
             ),
-            if (_searchController.text.isEmpty) ...[
+            if (_searchController.text.isEmpty &&
+                !state.isLoading &&
+                state.searchResults.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'All Products',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'Lato',
+                        color: Color(0xFF1E222B),
+                      ),
+                    ),
+                    Text(
+                      '${state.searchResults.length} items',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: 'Lato',
+                        color: Color(0xFF8891A5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _buildSearchResults(state.searchResults),
+              ),
+            ] else if (_searchController.text.isEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
@@ -280,8 +293,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _buildSearchResults(state.searchResults),
+              ),
             ],
-            const SizedBox(height: 16),
             if (state.isLoading)
               const Expanded(
                 child: Center(
@@ -300,10 +316,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                   ),
                 ),
-              )
-            else if (_searchController.text.isNotEmpty)
-              Expanded(
-                child: _buildSearchResults(state.searchResults),
               ),
           ],
         ),
