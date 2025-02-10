@@ -75,7 +75,7 @@ class MyOrdersScreen extends ConsumerWidget {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    firstItem.name,
+                                    order.orderTitle,
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
@@ -96,7 +96,8 @@ class MyOrdersScreen extends ConsumerWidget {
                             const SizedBox(height: 8),
                             const CustomPaint(
                               size: Size(double.infinity, 1),
-                              painter: DashedLinePainter(color: Color(0xFFE5E7EB)),
+                              painter:
+                                  DashedLinePainter(color: Color(0xFFE5E7EB)),
                             ),
                             const SizedBox(height: 16),
                             Row(
@@ -104,6 +105,7 @@ class MyOrdersScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       'Order #${order.id.substring(0, 8)}',

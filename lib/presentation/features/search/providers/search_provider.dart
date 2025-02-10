@@ -56,21 +56,21 @@ class SearchNotifier extends StateNotifier<SearchState> {
   }
 
   Future<void> search(String query) async {
-    dev.log(
-        'Starting search with query: \\${query.isEmpty ? "empty (all products)" : query}',
-        name: 'SearchProvider');
+    // dev.log(
+    //     'Starting search with query: \\${query.isEmpty ? "empty (all products)" : query}',
+    //     name: 'SearchProvider');
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      dev.log('Fetching products...', name: 'SearchProvider');
+      // dev.log('Fetching products...', name: 'SearchProvider');
       final response = await _productService.listProducts(
         name: query.isEmpty ? null : query,
         pageNo: 1,
         perPage: 50,
       );
 
-      dev.log('Received \\${response.content.length} products',
-          name: 'SearchProvider');
+      // dev.log('Received \\${response.content.length} products',
+      //     name: 'SearchProvider');
 
       // Add to recent searches if we have results and query is not empty
       if (query.isNotEmpty && query.length > 2 && response.content.isNotEmpty) {
@@ -82,7 +82,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
         isLoading: false,
         error: null,
       );
-      dev.log('Search completed successfully', name: 'SearchProvider');
+      // dev.log('Search completed successfully', name: 'SearchProvider');
     } catch (e) {
       dev.log('Error during search: \\$e', name: 'SearchProvider', error: e);
       state = state.copyWith(

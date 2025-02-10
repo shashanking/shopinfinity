@@ -42,12 +42,23 @@ class AuthService {
         ).toJson(),
       );
 
+      // dev.log('OTP verification raw response: ${response.data}',
+      //     name: 'AuthService');
       final authResponse = AuthResponse.fromJson(response.data);
 
-      // If verification successful, fetch user details
+      // Check if this is a new user (no token means new user)
+      if (authResponse.statusCode == 200 &&
+          authResponse.responseBody?.token == null) {
+        // dev.log('New user detected, proceeding with registration flow',
+        //     name: 'AuthService');
+        return authResponse;
+      }
+
+      // If verification successful and token exists, fetch user details
       if (authResponse.statusCode == 200 &&
           authResponse.responseBody?.token != null) {
-        dev.log('OTP verified, fetching user details...', name: 'AuthService');
+        // dev.log('OTP verified for existing user, fetching user details...',
+        //     name: 'AuthService');
 
         // Set token for subsequent requests
         final token = authResponse.responseBody!.token!;
@@ -69,8 +80,8 @@ class AuthService {
           options: options,
         );
 
-        dev.log('User details response: ${userResponse.data}',
-            name: 'AuthService');
+        // dev.log('User details response: ${userResponse.data}',
+        //     name: 'AuthService');
 
         if (userResponse.data != null &&
             userResponse.data['responseBody'] != null) {
@@ -84,7 +95,7 @@ class AuthService {
               token: formattedToken,
               message: authResponse.responseBody?.message,
               status: authResponse.responseBody?.status,
-              existing: authResponse.responseBody?.existing,
+              existing: true,
               userDetails: userDetails,
             ),
           );
@@ -93,7 +104,13 @@ class AuthService {
 
       return authResponse;
     } on dio.DioException catch (e) {
+      dev.log('DioException in verifyOtp: ${e.response?.data}',
+          name: 'AuthService', error: e);
       throw ApiException.fromDioError(e);
+    } catch (e, stack) {
+      dev.log('Error in verifyOtp: $e',
+          name: 'AuthService', error: e, stackTrace: stack);
+      rethrow;
     }
   }
 
@@ -127,7 +144,7 @@ class AuthService {
           'secondaryPhoneNo': secondaryPhone,
       };
 
-      dev.log('Register request: $request', name: 'AuthService');
+      // dev.log('Register request: $request', name: 'AuthService');
 
       final response = await _apiClient.post(
         ApiConfig.register,
@@ -141,7 +158,7 @@ class AuthService {
         ),
       );
 
-      dev.log('Register raw response: ${response.data}', name: 'AuthService');
+      // dev.log('Register raw response: ${response.data}', name: 'AuthService');
 
       if (response.statusCode == 403) {
         final message = response.data is Map
@@ -185,9 +202,20 @@ class AuthService {
           updatedAt: responseBody['updatedAt'] as String?,
         );
 
-        dev.log(
-            'Created user details from registration: ${userDetails.toJson()}',
-            name: 'AuthService');
+        // dev.log(
+        //     'Created user details from registration: ${userDetails.toJson()}',
+        //     name: 'AuthService');
+
+        // Save user details and token after successful registration
+        final token = responseBody['token'];
+        if (token != null) {
+          final formattedToken =
+              token.startsWith('Bearer ') ? token : 'Bearer $token';
+          await _storageService.saveToken(formattedToken);
+          await _storageService.saveUserDetails(userDetails);
+          // dev.log('Saved user details and token after registration',
+          //     name: 'AuthService');
+        }
 
         return AuthResponse(
           statusCode: responseData['statusCode'] ?? 200,
@@ -232,12 +260,12 @@ class AuthService {
 
   /// Resets the Dio client by recreating it with default options
   void resetClient() {
-    dev.log('Resetting Dio client...', name: 'AuthService');
+    // dev.log('Resetting Dio client...', name: 'AuthService');
 
     try {
       // Reset the ApiClient which will handle closing and recreating the Dio instance
       _apiClient.updateDio();
-      dev.log('Dio client reset complete', name: 'AuthService');
+      // dev.log('Dio client reset complete', name: 'AuthService');
     } catch (e, stack) {
       dev.log('Error resetting Dio client: $e\n$stack',
           name: 'AuthService', error: e);

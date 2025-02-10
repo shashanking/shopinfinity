@@ -14,7 +14,7 @@ final storageServiceProvider = Provider<StorageService>((ref) {
 // Global provider for API client
 final apiClientProvider = Provider<ApiClient>((ref) {
   final storageService = ref.watch(storageServiceProvider);
-  dev.log('Creating API client with storage service', name: 'Providers');
+  // dev.log('Creating API client with storage service', name: 'Providers');
   return ApiClient(storageService: storageService);
 });
 
@@ -22,8 +22,8 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 final productServiceProvider = Provider<ProductService>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   final storageService = ref.watch(storageServiceProvider);
-  dev.log('Creating product service with API client and storage service',
-      name: 'Providers');
+  // dev.log('Creating product service with API client and storage service',
+  //     name: 'Providers');
   return ProductService(apiClient: apiClient, storageService: storageService);
 });
 
@@ -31,7 +31,7 @@ final productServiceProvider = Provider<ProductService>((ref) {
 final authServiceProvider = Provider<AuthService>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   final storageService = ref.watch(storageServiceProvider);
-  dev.log('Creating auth service with API client', name: 'Providers');
+  // dev.log('Creating auth service with API client', name: 'Providers');
   return AuthService(
     apiClient: apiClient,
     dio: apiClient.dio,

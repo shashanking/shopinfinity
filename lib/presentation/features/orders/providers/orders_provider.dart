@@ -8,37 +8,58 @@ final ordersRepositoryProvider = Provider<OrdersRepository>((ref) {
   return OrdersRepository(dio: dio);
 });
 
-final ordersProvider = AsyncNotifierProvider<OrdersNotifier, OrderResponse?>(() {
+final ordersProvider =
+    AsyncNotifierProvider<OrdersNotifier, OrderListResponse?>(() {
   return OrdersNotifier();
 });
 
-final orderDetailsProvider = Provider.family<AsyncValue<Order?>, String>((ref, orderId) {
+final orderDetailsProvider =
+    Provider.family<AsyncValue<OrderResponse?>, String>((ref, orderId) {
   final ordersAsync = ref.watch(ordersProvider);
-  
+
   return ordersAsync.when(
     loading: () => const AsyncValue.loading(),
     error: (error, stack) => AsyncValue.error(error, stack),
     data: (orders) {
       if (orders == null) return const AsyncValue.data(null);
-      final order = orders.content.firstWhere(
-        (order) => order.id == orderId,
-        orElse: () => throw Exception('Order not found'),
-      );
-      return AsyncValue.data(order);
+      try {
+        final order = orders.content.firstWhere(
+          (order) => order.id == orderId,
+        );
+        return AsyncValue.data(order);
+      } catch (e) {
+        return const AsyncValue.data(null);
+      }
     },
   );
 });
 
-class OrdersNotifier extends AsyncNotifier<OrderResponse?> {
+class OrdersNotifier extends AsyncNotifier<OrderListResponse?> {
   @override
-  Future<OrderResponse?> build() async {
+  Future<OrderListResponse?> build() async {
     return _fetchOrders();
   }
 
-  Future<OrderResponse?> _fetchOrders() async {
+  Future<OrderListResponse?> _fetchOrders() async {
     final repository = ref.read(ordersRepositoryProvider);
     try {
       final orders = await repository.fetchOrders();
+
+      // Sort orders by creation date in descending order (latest first)
+      if (orders.content.isNotEmpty) {
+        final sortedOrders = List<OrderResponse>.from(orders.content)
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+        return OrderListResponse(
+          perPage: orders.perPage,
+          pageNo: orders.pageNo,
+          sortBy: orders.sortBy,
+          sortDirection: orders.sortDirection,
+          content: sortedOrders,
+          count: orders.count,
+        );
+      }
+
       return orders;
     } catch (e) {
       throw Exception('Failed to fetch orders: $e');

@@ -46,18 +46,20 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     }
 
     setState(() => _isLoading = true);
-    
+
     try {
-      dev.log('Verifying OTP for phone: ${widget.phoneNumber}', name: 'OtpScreen');
+      // dev.log('Verifying OTP for phone: ${widget.phoneNumber}',
+      //     name: 'OtpScreen');
       final authNotifier = ref.read(authProvider.notifier);
       final response = await authNotifier.verifyOtp(widget.phoneNumber, otp);
-      
+
       if (!mounted) return;
 
       if (response?.statusCode != 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response?.errorMessage ?? 'Invalid OTP. Please try again.'),
+            content: Text(
+                response?.errorMessage ?? 'Invalid OTP. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -77,27 +79,29 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         if (response?.responseBody?.token == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Invalid response for existing user. Please try again.'),
+              content:
+                  Text('Invalid response for existing user. Please try again.'),
               backgroundColor: Colors.red,
             ),
           );
           return;
         }
         // Existing user, go to shop
-        dev.log('Existing user, navigating to shop', name: 'OtpScreen');
+        // dev.log('Existing user, navigating to shop', name: 'OtpScreen');
         if (mounted) {
           context.go('/shop');
         }
       } else {
         // New user, proceed to personal details
         // For new users, we don't expect a token yet
-        dev.log('New user, navigating to personal details', name: 'OtpScreen');
+        // dev.log('New user, navigating to personal details', name: 'OtpScreen');
         if (mounted) {
           context.push('/personal-details', extra: widget.phoneNumber);
         }
       }
     } catch (e, stack) {
-      dev.log('OTP verification error: $e\n$stack', name: 'OtpScreen', error: e);
+      dev.log('OTP verification error: $e\n$stack',
+          name: 'OtpScreen', error: e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -116,7 +120,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   Future<void> _handleResendOtp() async {
     setState(() => _isLoading = true);
     try {
-      final response = await ref.read(authProvider.notifier).sendOtp(widget.phoneNumber);
+      final response =
+          await ref.read(authProvider.notifier).sendOtp(widget.phoneNumber);
       if (!mounted) return;
 
       if (response?.statusCode == 200) {
@@ -127,7 +132,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
         if (_focusNodes.isNotEmpty) {
           _focusNodes[0].requestFocus();
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('OTP sent successfully'),
@@ -137,7 +142,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response?.errorMessage ?? 'Failed to send OTP. Please try again.'),
+            content: Text(response?.errorMessage ??
+                'Failed to send OTP. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );

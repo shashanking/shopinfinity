@@ -12,10 +12,10 @@ class ApiClient {
   Dio get dio => _dio;
 
   ApiClient({required this.storageService}) {
-    dev.log('Initializing API client with storage service', name: 'ApiClient');
+    //dev.log('Initializing API client with storage service', name: 'ApiClient');
     _dio = _createDio();
     _addInterceptors();
-    dev.log('API client initialized with interceptors', name: 'ApiClient');
+    //dev.log('API client initialized with interceptors', name: 'ApiClient');
   }
 
   Dio _createDio() {
@@ -47,7 +47,7 @@ class ApiClient {
 
   /// Updates the Dio instance with a new one and resets interceptors
   void updateDio([Dio? newDio]) {
-    dev.log('Updating Dio instance...', name: 'ApiClient');
+    //dev.log('Updating Dio instance...', name: 'ApiClient');
 
     // Close the existing Dio instance if it exists
     _dio.close(force: true);
@@ -56,7 +56,7 @@ class ApiClient {
     _dio = newDio ?? _createDio();
     _addInterceptors();
 
-    dev.log('Dio instance updated with new interceptors', name: 'ApiClient');
+    //dev.log('Dio instance updated with new interceptors', name: 'ApiClient');
   }
 
   Future<Response> get(

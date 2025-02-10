@@ -11,13 +11,13 @@ class CartRepository {
 
   Future<CartResponse> fetchCart() async {
     try {
-      dev.log('Fetching cart...', name: 'CartRepository');
+      // dev.log('Fetching cart...', name: 'CartRepository');
       final response = await dio.get(ApiConfig.fetchCart);
-      dev.log('Cart response: ${response.data}', name: 'CartRepository');
+      // dev.log('Cart response: ${response.data}', name: 'CartRepository');
 
       // Handle empty cart response (204)
       if (response.statusCode == 204 || response.data['statusCode'] == 204) {
-        dev.log('Empty cart response', name: 'CartRepository');
+        // dev.log('Empty cart response', name: 'CartRepository');
         return const CartResponse(
           id: '',
           boughtProductDetailsList: [],
@@ -35,7 +35,7 @@ class CartRepository {
       if (response.data['statusCode'] == 400) {
         final errorMessage =
             response.data['errorMessage'] ?? 'Failed to fetch cart';
-        dev.log('Error fetching cart: $errorMessage', name: 'CartRepository');
+        // dev.log('Error fetching cart: $errorMessage', name: 'CartRepository');
         throw ApiException(message: errorMessage);
       }
 
@@ -44,13 +44,13 @@ class CartRepository {
       }
 
       final cartResponse = CartResponse.fromJson(response.data['responseBody']);
-      dev.log(
-          'Cart fetched successfully: ${cartResponse.boughtProductDetailsList.length} items',
-          name: 'CartRepository');
+      // dev.log(
+      //     'Cart fetched successfully: ${cartResponse.boughtProductDetailsList.length} items',
+      //     name: 'CartRepository');
       return cartResponse;
     } on DioException catch (e) {
-      dev.log('DioException fetching cart: ${e.message}',
-          name: 'CartRepository', error: e);
+      // dev.log('DioException fetching cart: ${e.message}',
+      //     name: 'CartRepository', error: e);
       if (e.response?.data != null) {
         final errorMessage =
             e.response?.data['errorMessage'] ?? 'Failed to fetch cart';
@@ -68,35 +68,43 @@ class CartRepository {
     required int quantity,
   }) async {
     try {
-      dev.log('Updating cart - varietyId: $varietyId, quantity: $quantity',
-          name: 'CartRepository');
+      // dev.log('Updating cart - varietyId: $varietyId, quantity: $quantity',
+      // name: 'CartRepository');
 
-      // For empty cart or first item, just send the new item
       final currentCart = await fetchCart();
       final List<Map<String, dynamic>> items = [];
 
-      // Add existing items except the one being updated
-      if (currentCart.boughtProductDetailsList.isNotEmpty) {
-        for (final item in currentCart.boughtProductDetailsList) {
-          if (item.varietyId != varietyId) {
+      // Maintain original order by iterating through current cart
+      for (final item in currentCart.boughtProductDetailsList) {
+        if (item.varietyId == varietyId) {
+          // Only add if quantity > 0
+          if (quantity > 0) {
             items.add({
-              'varietyId': item.varietyId,
-              'boughtQuantity': item.boughtQuantity,
+              'varietyId': varietyId,
+              'boughtQuantity': quantity,
             });
           }
+        } else {
+          // Keep existing items as they are
+          items.add({
+            'varietyId': item.varietyId,
+            'boughtQuantity': item.boughtQuantity,
+          });
         }
       }
 
-      // Only add the new item if quantity > 0
-      if (quantity > 0) {
+      // If the item wasn't in the cart and quantity > 0, add it at the end
+      if (!currentCart.boughtProductDetailsList
+              .any((item) => item.varietyId == varietyId) &&
+          quantity > 0) {
         items.add({
           'varietyId': varietyId,
           'boughtQuantity': quantity,
         });
       }
 
-      dev.log('Sending update cart request with ${items.length} items',
-          name: 'CartRepository');
+      // dev.log('Sending update cart request with ${items.length} items',
+      //     name: 'CartRepository');
 
       // Send request to API
       final response = await dio.post(
@@ -106,18 +114,18 @@ class CartRepository {
         },
       );
 
-      dev.log('Update cart response: ${response.data}', name: 'CartRepository');
+      // dev.log('Update cart response: ${response.data}', name: 'CartRepository');
 
       // Check for error response
       if (response.data['statusCode'] == 400) {
         final errorMessage =
             response.data['errorMessage'] ?? 'Failed to update cart';
-        dev.log('Error updating cart: $errorMessage', name: 'CartRepository');
+        // dev.log('Error updating cart: $errorMessage', name: 'CartRepository');
         throw ApiException(message: errorMessage);
       }
 
       if (response.statusCode == 204 || response.data['statusCode'] == 204) {
-        dev.log('Empty cart after update', name: 'CartRepository');
+        // dev.log('Empty cart after update', name: 'CartRepository');
         return const CartResponse(
           id: '',
           boughtProductDetailsList: [],
@@ -136,9 +144,9 @@ class CartRepository {
       }
 
       final cartResponse = CartResponse.fromJson(response.data['responseBody']);
-      dev.log(
-          'Cart updated successfully: ${cartResponse.boughtProductDetailsList.length} items',
-          name: 'CartRepository');
+      // dev.log(
+      //     'Cart updated successfully: ${cartResponse.boughtProductDetailsList.length} items',
+      //     name: 'CartRepository');
       return cartResponse;
     } on DioException catch (e) {
       dev.log('DioException updating cart: ${e.message}',

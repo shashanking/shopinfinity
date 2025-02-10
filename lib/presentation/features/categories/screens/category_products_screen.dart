@@ -41,10 +41,10 @@ class _CategoryProductsScreenState
 
     // Initially load products for the main subcategory
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final notifier =
-          ref.read(categoryProductsProvider(widget.subCategoryName).notifier);
-      notifier.setIsSubCategory2(false);
-      dev.log('Initial load for subcategory: ${widget.subCategoryName}');
+      final params =
+          CategoryProductsParams(subCategory: widget.subCategoryName);
+      final notifier = ref.read(categoryProductsProvider(params).notifier);
+      // dev.log('Initial load for subcategory: ${widget.subCategoryName}');
     });
   }
 
@@ -57,40 +57,51 @@ class _CategoryProductsScreenState
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent * 0.8) {
-      final notifier = ref.read(categoryProductsProvider(
-              selectedSubCategory2.isEmpty
-                  ? widget.subCategoryName
-                  : selectedSubCategory2)
-          .notifier);
+      final params = selectedSubCategory2.isEmpty
+          ? CategoryProductsParams(subCategory: widget.subCategoryName)
+          : CategoryProductsParams(
+              subCategory: selectedSubCategory2,
+              parentCategory: widget.subCategoryName,
+            );
+      final notifier = ref.read(categoryProductsProvider(params).notifier);
       notifier.loadMore();
     }
   }
 
   void _onSubCategory2Selected(SubCategory2 subCategory2) {
-    // First update the UI state
+    // dev.log('Selecting subcategory2: ${subCategory2.name}',
+    //     name: 'CategoryProducts');
+
+    // Create provider params for the subcategory2
+    final params = CategoryProductsParams(
+      subCategory: subCategory2.name,
+      parentCategory: widget.subCategoryName,
+    );
+
+    // Get the notifier with the new params
+    final notifier = ref.read(categoryProductsProvider(params).notifier);
+
+    // Update UI state
     setState(() {
       selectedSubCategory2 = subCategory2.name;
     });
 
-    // Then set up the provider and trigger a load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final notifier =
-          ref.read(categoryProductsProvider(subCategory2.name).notifier);
-      notifier.setParentSubCategory(widget.subCategoryName);
-      notifier.setIsSubCategory2(true);
-      dev.log(
-          'Selected subcategory2: ${subCategory2.name} under parent: ${widget.subCategoryName}');
-    });
+    // dev.log(
+    //     'Selected subcategory2: ${subCategory2.name} under parent: ${widget.subCategoryName}',
+    //     name: 'CategoryProducts');
   }
 
   @override
   Widget build(BuildContext context) {
-    // If selectedSubCategory2 is empty, show products for the main subcategory
-    // Otherwise, show products for the selected subcategory2
-    final productsAsync = ref.watch(categoryProductsProvider(
-        selectedSubCategory2.isEmpty
-            ? widget.subCategoryName
-            : selectedSubCategory2));
+    // Create provider params based on whether a subcategory2 is selected
+    final providerParams = selectedSubCategory2.isEmpty
+        ? CategoryProductsParams(subCategory: widget.subCategoryName)
+        : CategoryProductsParams(
+            subCategory: selectedSubCategory2,
+            parentCategory: widget.subCategoryName,
+          );
+
+    final productsAsync = ref.watch(categoryProductsProvider(providerParams));
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(

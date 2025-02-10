@@ -24,29 +24,29 @@ class SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _initializeApp() async {
     // Show splash screen for minimum 3 seconds
     await Future.delayed(const Duration(seconds: 3));
-    
+
     if (!mounted) return;
 
     try {
       final storage = ref.read(storageServiceProvider);
       final isLoggedIn = await storage.isLoggedIn();
-      dev.log('Splash: isLoggedIn = $isLoggedIn', name: 'SplashScreen');
+      // dev.log('Splash: isLoggedIn = $isLoggedIn', name: 'SplashScreen');
 
       if (!mounted) return;
 
       if (isLoggedIn) {
-        dev.log('Splash: Navigating to shop', name: 'SplashScreen');
+        // dev.log('Splash: Navigating to shop', name: 'SplashScreen');
         context.go('/shop');
       } else {
         final prefs = await SharedPreferences.getInstance();
         final hasLaunchedBefore = prefs.getBool('has_launched_before') ?? false;
-        
+
         if (!mounted) return;
 
         if (!hasLaunchedBefore) {
           await prefs.setBool('has_launched_before', true);
         }
-        dev.log('Splash: Navigating to welcome', name: 'SplashScreen');
+        // dev.log('Splash: Navigating to welcome', name: 'SplashScreen');
         context.go('/welcome');
       }
     } catch (e) {
