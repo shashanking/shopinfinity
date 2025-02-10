@@ -19,7 +19,7 @@ final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize storage
   final storageService = StorageService();
   await storageService.init();
@@ -37,37 +37,38 @@ void main() async {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final storage = ref.read(storageServiceProvider);
-  
+
   return GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: '/',
     redirect: (context, state) async {
-      dev.log('Global redirect check for path: ${state.uri.path}', name: 'Router');
+      // dev.log('Global redirect check for path: ${state.uri.path}',
+      //     name: 'Router');
       // Wait for storage to be readyhhhhh
       try {
         final isLoggedIn = await storage.isLoggedIn();
         final path = state.uri.path;
-        
+
         // Don't redirect if we're in the auth flow
         if (path == '/login' || path == '/otp' || path == '/personal-details') {
-          dev.log('In auth flow, no redirect needed', name: 'Router');
+          // dev.log('In auth flow, no redirect needed', name: 'Router');
           return null;
         }
-        
+
         if (isLoggedIn) {
           if (path == '/') {
-            dev.log('Logged in, redirecting to shop', name: 'Router');
+            // dev.log('Logged in, redirecting to shop', name: 'Router');
             return '/shop';
           }
         } else {
           if (path == '/' || path == '/shop') {
-            dev.log('Not logged in, redirecting to login', name: 'Router');
+            // dev.log('Not logged in, redirecting to login', name: 'Router');
             return '/';
           }
         }
         return null;
       } catch (e) {
-        dev.log('Router redirect error: $e', name: 'Router');
+        // dev.log('Router redirect error: $e', name: 'Router');
         return '/login';
       }
     },

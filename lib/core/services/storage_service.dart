@@ -11,7 +11,7 @@ class StorageService {
 
   Future<void> init() async {
     if (_isInitialized) {
-      dev.log('Storage service already initialized', name: 'StorageService');
+      // dev.log('Storage service already initialized', name: 'StorageService');
       return;
     }
 
@@ -29,8 +29,8 @@ class StorageService {
       _userBox = await Hive.openBox<Map>('shopinfinity_user');
 
       _isInitialized = true;
-      dev.log('Storage service initialized successfully',
-          name: 'StorageService');
+      // dev.log('Storage service initialized successfully',
+      //     name: 'StorageService');
     } catch (e, stack) {
       dev.log('Error initializing storage service: $e\n$stack',
           name: 'StorageService', error: e);
@@ -40,17 +40,17 @@ class StorageService {
 
   Future<void> ensureInitialized() async {
     if (!_isInitialized) {
-      dev.log('Storage not initialized, initializing now...',
-          name: 'StorageService');
+      // dev.log('Storage not initialized, initializing now...',
+      //     name: 'StorageService');
       await init();
     }
   }
 
   Future<void> saveToken(String token) async {
     await ensureInitialized();
-    dev.log('Saving token...', name: 'StorageService');
+    // dev.log('Saving token...', name: 'StorageService');
     await _tokenBox.put(_tokenKey, token);
-    dev.log('Token saved successfully', name: 'StorageService');
+    // dev.log('Token saved successfully', name: 'StorageService');
   }
 
   Future<String?> getToken() async {
@@ -60,9 +60,9 @@ class StorageService {
 
   Future<void> saveUserDetails(UserDetails userDetails) async {
     await ensureInitialized();
-    dev.log('Saving user details...', name: 'StorageService');
+    // dev.log('Saving user details...', name: 'StorageService');
     await _userBox.put(_userDetailsKey, userDetails.toJson());
-    dev.log('User details saved successfully', name: 'StorageService');
+    // dev.log('User details saved successfully', name: 'StorageService');
   }
 
   Future<UserDetails?> getUserDetails() async {
@@ -78,21 +78,21 @@ class StorageService {
     await ensureInitialized();
     final token = await getToken();
     final userDetails = await getUserDetails();
-    dev.log(
-        'Checking login status: token=${token != null}, userDetails=${userDetails != null}',
-        name: 'StorageService');
+    // dev.log(
+    //     'Checking login status: token=${token != null}, userDetails=${userDetails != null}',
+    //     name: 'StorageService');
     return token != null && userDetails != null;
   }
 
   Future<void> clearAll() async {
     await ensureInitialized();
-    dev.log('Clearing all storage...', name: 'StorageService');
+    // dev.log('Clearing all storage...', name: 'StorageService');
     try {
       await Future.wait([
         _tokenBox.clear(),
         _userBox.clear(),
       ]);
-      dev.log('Storage cleared successfully', name: 'StorageService');
+      // dev.log('Storage cleared successfully', name: 'StorageService');
     } catch (e, stack) {
       dev.log('Error clearing storage: $e\n$stack',
           name: 'StorageService', error: e);

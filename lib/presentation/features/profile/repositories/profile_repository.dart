@@ -9,18 +9,18 @@ class ProfileRepository {
 
   Future<Profile> fetchProfile() async {
     try {
-      dev.log('Fetching profile from API...', name: 'ProfileRepository');
+      // dev.log('Fetching profile from API...', name: 'ProfileRepository');
 
       // Log the request headers
       final token = await _apiClient.storageService.getToken();
-      dev.log('Request headers - Authorization: $token',
-          name: 'ProfileRepository');
+      // dev.log('Request headers - Authorization: $token',
+      //     name: 'ProfileRepository');
 
       final response = await _apiClient.get('/login/v1/profile/user/fetch');
-      dev.log('Profile API response: ${response.data}',
-          name: 'ProfileRepository');
-      dev.log('Response status code: ${response.statusCode}',
-          name: 'ProfileRepository');
+      // dev.log('Profile API response: ${response.data}',
+      //     name: 'ProfileRepository');
+      // dev.log('Response status code: ${response.statusCode}',
+      //     name: 'ProfileRepository');
 
       if (response.data == null) {
         dev.log('No data in profile response', name: 'ProfileRepository');
@@ -28,12 +28,12 @@ class ProfileRepository {
       }
 
       final responseData = response.data as Map<String, dynamic>;
-      dev.log('Response data: $responseData', name: 'ProfileRepository');
+      // dev.log('Response data: $responseData', name: 'ProfileRepository');
 
       // Extract data from responseBody if it exists
       final userData =
           responseData['responseBody'] as Map<String, dynamic>? ?? responseData;
-      dev.log('Extracted user data: $userData', name: 'ProfileRepository');
+      // dev.log('Extracted user data: $userData', name: 'ProfileRepository');
 
       final profile = Profile(
         name: userData['name'] ?? '',
@@ -41,8 +41,8 @@ class ProfileRepository {
         mobile: userData['primaryPhoneNo'] ?? '',
       );
 
-      dev.log('Created profile object: ${profile.toString()}',
-          name: 'ProfileRepository');
+      // dev.log('Created profile object: ${profile.toString()}',
+      //     name: 'ProfileRepository');
       return profile;
     } catch (e, stack) {
       dev.log('Error fetching profile: $e\n$stack',

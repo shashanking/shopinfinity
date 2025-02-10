@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/network/api_exception.dart';
 import '../../profile/providers/address_provider.dart';
 
 class AddAddressOverlay extends ConsumerStatefulWidget {
@@ -62,13 +63,26 @@ class _AddAddressOverlayState extends ConsumerState<AddAddressOverlay> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          // Handle service errors (like pincode not available)
+          if (e is ApiException && e.isServiceError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.message),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          } else {
+            // Handle other errors
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceAll('Exception: ', '')),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+            Navigator.pop(context);  // Only pop for non-service errors
+          }
         }
       }
     }

@@ -18,7 +18,7 @@ class CategoryService {
 
   Future<CategoryResponse> getAllCategories() async {
     try {
-      dev.log('Fetching all categories', name: 'CategoryService');
+      //dev.log('Fetching all categories', name: 'CategoryService');
       final token = await _storageService.getToken();
 
       final response = await _apiClient.get(
@@ -30,8 +30,8 @@ class CategoryService {
         ),
       );
 
-      dev.log('Response Status Code: ${response.statusCode}',
-          name: 'CategoryService');
+      //dev.log('Response Status Code: ${response.statusCode}',
+      //    name: 'CategoryService');
 
       if (response.data == null) {
         throw ApiException(

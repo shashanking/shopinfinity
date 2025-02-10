@@ -18,14 +18,14 @@ List<RouteBase> authRoutes = [
   GoRoute(
     path: '/welcome',
     redirect: (BuildContext context, GoRouterState state) async {
-      dev.log('Welcome route redirect check', name: 'Router');
+      // dev.log('Welcome route redirect check', name: 'Router');
       final ref = ProviderScope.containerOf(context);
       final storage = ref.read(storageServiceProvider);
       final isLoggedIn = await storage.isLoggedIn();
-      dev.log('Welcome route: isLoggedIn = $isLoggedIn', name: 'Router');
-      
+      // dev.log('Welcome route: isLoggedIn = $isLoggedIn', name: 'Router');
+
       if (isLoggedIn) {
-        dev.log('Welcome route: Redirecting to shop', name: 'Router');
+        // dev.log('Welcome route: Redirecting to shop', name: 'Router');
         return '/shop';
       }
       return null;
@@ -39,10 +39,10 @@ List<RouteBase> authRoutes = [
       final ref = ProviderScope.containerOf(context);
       final storage = ref.read(storageServiceProvider);
       final isLoggedIn = await storage.isLoggedIn();
-      dev.log('Login route: isLoggedIn = $isLoggedIn', name: 'Router');
-      
+      // dev.log('Login route: isLoggedIn = $isLoggedIn', name: 'Router');
+
       if (isLoggedIn) {
-        dev.log('Login route: Redirecting to shop', name: 'Router');
+        // dev.log('Login route: Redirecting to shop', name: 'Router');
         return '/shop';
       }
       return null;
@@ -52,20 +52,21 @@ List<RouteBase> authRoutes = [
   GoRoute(
     path: '/otp',
     redirect: (BuildContext context, GoRouterState state) async {
-      dev.log('OTP route redirect check', name: 'Router');
+      // dev.log('OTP route redirect check', name: 'Router');
       final ref = ProviderScope.containerOf(context);
       final storage = ref.read(storageServiceProvider);
       final isLoggedIn = await storage.isLoggedIn();
-      dev.log('OTP route: isLoggedIn = $isLoggedIn', name: 'Router');
-      
+      // dev.log('OTP route: isLoggedIn = $isLoggedIn', name: 'Router');
+
       if (isLoggedIn) {
-        dev.log('OTP route: Redirecting to shop', name: 'Router');
+        // dev.log('OTP route: Redirecting to shop', name: 'Router');
         return '/shop';
       }
-      
+
       // Check if phone number is provided
       if (state.extra == null) {
-        dev.log('OTP route: No phone number provided, redirecting to login', name: 'Router');
+        // dev.log('OTP route: No phone number provided, redirecting to login',
+        //     name: 'Router');
         return '/login';
       }
       return null;

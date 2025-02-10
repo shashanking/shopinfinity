@@ -34,7 +34,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
   /// Saves the user session data (token and user details) to storage
   Future<void> _saveSession(AuthResponse response) async {
     try {
-      dev.log('Saving session data...', name: 'AuthNotifier');
+      // dev.log('Saving session data...', name: 'AuthNotifier');
 
       // Validate response data first
       if (response.responseBody == null) {
@@ -65,9 +65,9 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
       await _storageService.saveToken(formattedToken);
       await _storageService.saveUserDetails(userDetails);
 
-      dev.log('Saved user details: ${userDetails.toJson()}',
-          name: 'AuthNotifier');
-      dev.log('Session data saved successfully', name: 'AuthNotifier');
+      // dev.log('Saved user details: ${userDetails.toJson()}',
+      //     name: 'AuthNotifier');
+      // dev.log('Session data saved successfully', name: 'AuthNotifier');
     } catch (e, stack) {
       dev.log('Error saving session: $e\n$stack',
           name: 'AuthNotifier', error: e);
@@ -79,24 +79,24 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
 
   /// Clears the user session data and resets related states
   Future<void> _clearSession() async {
-    dev.log('Clearing session data...', name: 'AuthNotifier');
+    // dev.log('Clearing session data...', name: 'AuthNotifier');
     await _storageService.clearAll();
     _ref.invalidate(cartProvider);
-    dev.log('Session data cleared', name: 'AuthNotifier');
+    // dev.log('Session data cleared', name: 'AuthNotifier');
   }
 
   Future<void> _initializeAuthState() async {
     try {
-      dev.log('Initializing auth state...', name: 'AuthNotifier');
+      // dev.log('Initializing auth state...', name: 'AuthNotifier');
       final isLoggedIn = await _storageService.isLoggedIn();
-      dev.log('Is logged in: $isLoggedIn', name: 'AuthNotifier');
+      // dev.log('Is logged in: $isLoggedIn', name: 'AuthNotifier');
 
       if (isLoggedIn) {
         final token = await _storageService.getToken();
         final userDetails = await _storageService.getUserDetails();
-        dev.log('Retrieved token: $token', name: 'AuthNotifier');
-        dev.log('Retrieved user details: ${userDetails?.toJson()}',
-            name: 'AuthNotifier');
+        // dev.log('Retrieved token: $token', name: 'AuthNotifier');
+        // dev.log('Retrieved user details: ${userDetails?.toJson()}',
+        //     name: 'AuthNotifier');
 
         if (userDetails != null && token != null) {
           state = AsyncValue.data(AuthResponse(
@@ -108,16 +108,16 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
               existing: true,
             ),
           ));
-          dev.log('Auth state initialized with user details',
-              name: 'AuthNotifier');
+          // dev.log('Auth state initialized with user details',
+          //     name: 'AuthNotifier');
         } else {
-          dev.log('Invalid session data found, clearing auth state',
-              name: 'AuthNotifier');
+          // dev.log('Invalid session data found, clearing auth state',
+          //     name: 'AuthNotifier');
           await _clearSession();
           state = const AsyncValue.data(null);
         }
       } else {
-        dev.log('Not logged in, auth state is null', name: 'AuthNotifier');
+        // dev.log('Not logged in, auth state is null', name: 'AuthNotifier');
         await _clearSession();
         state = const AsyncValue.data(null);
       }
@@ -132,9 +132,9 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
   Future<AuthResponse?> sendOtp(String phoneNumber) async {
     state = const AsyncValue.loading();
     try {
-      dev.log('Sending OTP for phone: $phoneNumber', name: 'AuthNotifier');
+      // dev.log('Sending OTP for phone: $phoneNumber', name: 'AuthNotifier');
       final response = await _authService.sendOtp(phoneNumber);
-      dev.log('OTP send response: ${response.toJson()}', name: 'AuthNotifier');
+      // dev.log('OTP send response: ${response.toJson()}', name: 'AuthNotifier');
       state = AsyncValue.data(response);
       return response;
     } catch (e, stack) {
@@ -147,12 +147,21 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
   Future<AuthResponse?> verifyOtp(String phoneNumber, String otp) async {
     state = const AsyncValue.loading();
     try {
-      dev.log('Verifying OTP for phone: $phoneNumber', name: 'AuthNotifier');
+      // dev.log('Verifying OTP for phone: $phoneNumber', name: 'AuthNotifier');
       final response = await _authService.verifyOtp(phoneNumber, otp);
-      dev.log('OTP verify response: ${response.toJson()}',
-          name: 'AuthNotifier');
+      // dev.log('OTP verify response: ${response.toJson()}',
+      //     name: 'AuthNotifier');
 
       if (response.statusCode == 200) {
+        // Check if this is a new user
+        if (response.responseBody?.token == null) {
+          // dev.log('New user detected, no session to save yet',
+          //     name: 'AuthNotifier');
+          state = AsyncValue.data(response);
+          return response;
+        }
+
+        // Existing user with token
         try {
           await _saveSession(response);
           state = AsyncValue.data(response);
@@ -178,9 +187,9 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
   Future<AuthResponse?> login(String username, String password) async {
     state = const AsyncValue.loading();
     try {
-      dev.log('Logging in user: $username', name: 'AuthNotifier');
+      // dev.log('Logging in user: $username', name: 'AuthNotifier');
       final response = await _authService.login(username, password);
-      dev.log('Login response: ${response.toJson()}', name: 'AuthNotifier');
+      // dev.log('Login response: ${response.toJson()}', name: 'AuthNotifier');
 
       if (response.statusCode == 200) {
         await _saveSession(response);
@@ -203,14 +212,14 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
   }) async {
     state = const AsyncValue.loading();
     try {
-      dev.log('Registering user: $name ($phone)', name: 'AuthNotifier');
+      // dev.log('Registering user: $name ($phone)', name: 'AuthNotifier');
       final response = await _authService.register(
         phone: phone,
         name: name,
         email: email,
         secondaryPhone: secondaryPhone,
       );
-      dev.log('Register response: ${response.toJson()}', name: 'AuthNotifier');
+      // dev.log('Register response: ${response.toJson()}', name: 'AuthNotifier');
 
       if (response.statusCode == 200) {
         await _saveSession(response);
@@ -227,7 +236,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
 
   Future<void> logout() async {
     try {
-      dev.log('Logging out user...', name: 'AuthNotifier');
+      // dev.log('Logging out user...', name: 'AuthNotifier');
 
       // First set state to null to trigger listeners
       state = const AsyncValue.data(null);
@@ -238,7 +247,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<AuthResponse?>> {
       // Clear Dio client's cache by recreating it
       _authService.resetClient();
 
-      dev.log('Logout complete', name: 'AuthNotifier');
+      // dev.log('Logout complete', name: 'AuthNotifier');
     } catch (e, stack) {
       dev.log('Error logging out: $e\n$stack', name: 'AuthNotifier', error: e);
       state = AsyncValue.error(e, stack);

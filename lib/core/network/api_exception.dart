@@ -4,11 +4,13 @@ class ApiException implements Exception {
   final String message;
   final int? statusCode;
   final dynamic error;
+  final bool isServiceError;
 
   ApiException({
     required this.message,
     this.statusCode,
     this.error,
+    this.isServiceError = false,
   });
 
   factory ApiException.fromDioError(DioException dioError) {
@@ -47,9 +49,11 @@ class ApiException implements Exception {
         if (dioError.response?.data != null) {
           try {
             if (dioError.response?.data['message'] != null) {
-              message = dioError.response?.data['message'].toString() ?? message;
+              message =
+                  dioError.response?.data['message'].toString() ?? message;
             } else if (dioError.response?.data['errorMessage'] != null) {
-              message = dioError.response?.data['errorMessage'].toString() ?? message;
+              message =
+                  dioError.response?.data['errorMessage'].toString() ?? message;
             }
           } catch (e) {
             // If we can't parse the error message, use the default
@@ -61,7 +65,8 @@ class ApiException implements Exception {
           error: dioError.error,
         );
       case DioExceptionType.unknown:
-        if (dioError.error != null && dioError.error.toString().contains('SocketException')) {
+        if (dioError.error != null &&
+            dioError.error.toString().contains('SocketException')) {
           return ApiException(
             message: 'No Internet connection',
             statusCode: statusCode,

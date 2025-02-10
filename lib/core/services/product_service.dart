@@ -48,9 +48,9 @@ class ProductService {
         if (sortDirection != null) 'sortDirection': sortDirection,
       };
 
-      dev.log('API Request URL: ${ApiConfig.listProducts}',
-          name: 'ProductService');
-      dev.log('Query Parameters: $queryParams', name: 'ProductService');
+      // dev.log('API Request URL: ${ApiConfig.listProducts}',
+      //     name: 'ProductService');
+      // dev.log('Query Parameters: $queryParams', name: 'ProductService');
 
       final token = await _storageService.getToken();
       final response = await _apiClient.get(
@@ -63,18 +63,18 @@ class ProductService {
         ),
       );
 
-      dev.log('Response Status Code: ${response.statusCode}',
-          name: 'ProductService');
-      if (response.data != null) {
-        dev.log('Response Data Type: ${response.data.runtimeType}',
-            name: 'ProductService');
-      }
+      // dev.log('Response Status Code: ${response.statusCode}',
+      //     name: 'ProductService');
+      // if (response.data != null) {
+      //   dev.log('Response Data Type: ${response.data.runtimeType}',
+      //       name: 'ProductService');
+      // }
 
       // Log the response data
-      dev.log('Response Data: ${response.data}', name: 'ProductService');
+      // dev.log('Response Data: ${response.data}', name: 'ProductService');
 
       if (response.data == null) {
-        dev.log('No data received from API', name: 'ProductService');
+        // dev.log('No data received from API', name: 'ProductService');
         throw ApiException(
           message: 'No data received from API',
           statusCode: response.statusCode,
@@ -82,8 +82,8 @@ class ProductService {
       }
 
       if (response.statusCode != 200) {
-        dev.log('API call failed with status: ${response.statusCode}',
-            name: 'ProductService');
+        // dev.log('API call failed with status: ${response.statusCode}',
+        //     name: 'ProductService');
         throw ApiException(
           message: 'API call failed',
           statusCode: response.statusCode,
@@ -92,8 +92,8 @@ class ProductService {
 
       final responseData = response.data;
       if (responseData is! Map<String, dynamic>) {
-        dev.log('Invalid response format: $responseData',
-            name: 'ProductService', error: 'Response is not a Map');
+        // dev.log('Invalid response format: $responseData',
+        //     name: 'ProductService', error: 'Response is not a Map');
         throw ApiException(
           message: 'Invalid API response format',
           statusCode: response.statusCode,
@@ -103,18 +103,18 @@ class ProductService {
       // Handle both response formats
       final productData = responseData['responseBody'] ?? responseData;
       if (productData is! Map<String, dynamic>) {
-        dev.log('Invalid product data format: $productData',
-            name: 'ProductService', error: 'Product data is not a Map');
+        // dev.log('Invalid product data format: $productData',
+        //     name: 'ProductService', error: 'Product data is not a Map');
         throw ApiException(
           message: 'Invalid product data format',
           statusCode: response.statusCode,
         );
       }
 
-      dev.log('Product Response Data: $productData', name: 'ProductService');
+      // dev.log('Product Response Data: $productData', name: 'ProductService');
       final result = ProductListResponse.fromJson(productData);
-      dev.log('Parsed ${result.content.length} products from page $pageNo',
-          name: 'ProductService');
+      // dev.log('Parsed ${result.content.length} products from page $pageNo',
+      //     name: 'ProductService');
       return result;
     } on dio.DioException catch (e, stack) {
       dev.log(

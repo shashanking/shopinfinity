@@ -19,41 +19,41 @@ class ProfileNotifier extends AsyncNotifier<Profile> {
   Future<Profile> build() async {
     // Listen to auth state changes
     ref.listen(authProvider, (previous, next) {
-      dev.log('Auth state changed:', name: 'ProfileNotifier');
-      dev.log('Previous: ${previous?.value?.toJson()}',
-          name: 'ProfileNotifier');
-      dev.log('Next: ${next.value?.toJson()}', name: 'ProfileNotifier');
+      // dev.log('Auth state changed:', name: 'ProfileNotifier');
+      // dev.log('Previous: ${previous?.value?.toJson()}',
+      //     name: 'ProfileNotifier');
+      // dev.log('Next: ${next.value?.toJson()}', name: 'ProfileNotifier');
 
       if (previous?.value != next.value) {
-        dev.log('Auth state changed, refreshing profile...',
-            name: 'ProfileNotifier');
+        // dev.log('Auth state changed, refreshing profile...',
+        //     name: 'ProfileNotifier');
         ref.invalidateSelf();
       }
     });
 
     // Get current auth state
     final authState = ref.watch(authProvider);
-    dev.log('Current auth state: ${authState.value?.toJson()}',
-        name: 'ProfileNotifier');
+    // dev.log('Current auth state: ${authState.value?.toJson()}',
+    //     name: 'ProfileNotifier');
 
     return authState.when(
       data: (auth) async {
         if (auth == null) {
-          dev.log('No auth data, returning guest profile',
-              name: 'ProfileNotifier');
+          // dev.log('No auth data, returning guest profile',
+          //     name: 'ProfileNotifier');
           return const Profile(name: 'Guest', email: '', mobile: '');
         }
 
-        dev.log('Auth data exists: ${auth.toJson()}', name: 'ProfileNotifier');
-        dev.log('User details: ${auth.responseBody?.userDetails?.toJson()}',
-            name: 'ProfileNotifier');
+        // dev.log('Auth data exists: ${auth.toJson()}', name: 'ProfileNotifier');
+        // dev.log('User details: ${auth.responseBody?.userDetails?.toJson()}',
+        //     name: 'ProfileNotifier');
 
         try {
-          dev.log('Fetching profile...', name: 'ProfileNotifier');
+          // dev.log('Fetching profile...', name: 'ProfileNotifier');
           final repository = ref.watch(profileRepositoryProvider);
           final profile = await repository.fetchProfile();
-          dev.log('Profile fetched successfully: ${profile.name}',
-              name: 'ProfileNotifier');
+          // dev.log('Profile fetched successfully: ${profile.name}',
+          //     name: 'ProfileNotifier');
           return profile;
         } catch (e, stack) {
           dev.log('Error fetching profile: $e\n$stack',
@@ -71,8 +71,8 @@ class ProfileNotifier extends AsyncNotifier<Profile> {
         }
       },
       loading: () {
-        dev.log('Auth state loading, returning guest profile',
-            name: 'ProfileNotifier');
+        // dev.log('Auth state loading, returning guest profile',
+        //     name: 'ProfileNotifier');
         return Future.value(
             const Profile(name: 'Guest', email: '', mobile: ''));
       },

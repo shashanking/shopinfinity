@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_provider.dart';
+import '../../../../core/network/api_exception.dart';
 import '../models/address.dart';
 import '../repositories/address_repository.dart';
 
@@ -8,7 +9,8 @@ final addressRepositoryProvider = Provider<AddressRepository>((ref) {
   return AddressRepository(dio: dio);
 });
 
-final addressProvider = StateNotifierProvider<AddressNotifier, AsyncValue<AddressResponse?>>((ref) {
+final addressProvider =
+    StateNotifierProvider<AddressNotifier, AsyncValue<AddressResponse?>>((ref) {
   return AddressNotifier(repository: ref.watch(addressRepositoryProvider));
 });
 
@@ -54,6 +56,7 @@ class AddressNotifier extends StateNotifier<AsyncValue<AddressResponse?>> {
   }) async {
     try {
       state = const AsyncValue.loading();
+
       await _repository.addAddress(
         addressLine1: addressLine1,
         addressLine2: addressLine2,
@@ -64,10 +67,16 @@ class AddressNotifier extends StateNotifier<AsyncValue<AddressResponse?>> {
         addressName: addressName,
         primaryAddress: primaryAddress,
       );
+
       await _fetchAddresses();
     } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-      rethrow; // Re-throw to handle in UI
+      // If it's a service error (like pincode not available), keep the current state
+      if (e is ApiException && e.isServiceError) {
+        state = state.whenData((value) => value); // Restore previous state
+      } else {
+        state = AsyncValue.error(e, StackTrace.current);
+      }
+      rethrow;
     }
   }
 }

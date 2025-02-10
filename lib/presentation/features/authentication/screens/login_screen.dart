@@ -39,11 +39,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      dev.log('Sending OTP for phone: ${_phoneController.text}',
-          name: 'LoginScreen');
+      // dev.log('Sending OTP for phone: ${_phoneController.text}',
+      //     name: 'LoginScreen');
       final response =
           await ref.read(authProvider.notifier).sendOtp(_phoneController.text);
-      dev.log('Send OTP response: ${response?.toJson()}', name: 'LoginScreen');
+      // dev.log('Send OTP response: ${response?.toJson()}', name: 'LoginScreen');
 
       if (mounted) {
         if (response?.statusCode == 200) {
