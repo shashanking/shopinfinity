@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/services/whatsapp_service.dart';
+import '../../../../core/config/app_config.dart';
 
 import '../../../shared/widgets/search_bar.dart';
 import '../widgets/exclusive_products_grid.dart';
@@ -54,10 +56,27 @@ class ShopScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
                     _buildSnacksCategories(context, ref),
                     const SizedBox(height: 24),
-                    Image.asset(
-                      'assets/images/home_banner2.png',
-                      width: double.infinity,
-                      fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () async {
+                        try {
+                          await WhatsAppService.openWhatsAppChat(
+                              AppConfig.whatsappNumber);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Could not open WhatsApp. Please make sure WhatsApp is installed.'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Image.asset(
+                        'assets/images/home_banner2.png',
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                     const SizedBox(height: 32),
                     const SectionTitle(title: 'Beauty & Personal Care'),
@@ -233,11 +252,12 @@ class ShopScreen extends ConsumerWidget {
             return Wrap(
               spacing: spacing,
               runSpacing: 30,
-              children:
-                  List.generate(householdCategory.subCategories.length, (index) {
+              children: List.generate(householdCategory.subCategories.length,
+                  (index) {
                 final subCategory = householdCategory.subCategories[index];
                 return SizedBox(
-                  width: (screenWidth - 44) / 2, // All items are large with double width
+                  width: (screenWidth - 44) /
+                      2, // All items are large with double width
                   height: 120,
                   child: CategoryCard(
                     item: CategoryItem(

@@ -21,6 +21,7 @@ class OrderDetailsScreen extends ConsumerWidget {
       price: item.discountedPrice,
       originalPrice: item.price,
       weight: '${item.value}${item.unit}',
+      quantity: item.boughtQuantity,
       image: item.documents.isNotEmpty
           ? item.documents.first
           : 'assets/images/placeholder.png',

@@ -118,3 +118,22 @@ Please read CONTRIBUTING.md for details on our code of conduct and the process f
 ## License
 
 This project is licensed under the MIT License - see the LICENSE.md file for details
+
+## Environment Variables
+
+The app uses the following environment variables that can be set during build time:
+
+- `WHATSAPP_NUMBER`: The WhatsApp number for customer support (default: +919876543210)
+
+### Setting Environment Variables
+
+For development:
+```bash
+flutter run --dart-define=WHATSAPP_NUMBER=+1234567890
+```
+
+For release builds:
+```bash
+flutter build apk --dart-define=WHATSAPP_NUMBER=+1234567890
+flutter build ios --dart-define=WHATSAPP_NUMBER=+1234567890
+```

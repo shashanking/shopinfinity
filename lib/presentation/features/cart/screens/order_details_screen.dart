@@ -75,7 +75,8 @@ class OrderDetailsScreen extends ConsumerWidget {
             actions: [
               Container(
                 margin: const EdgeInsets.only(right: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -185,7 +186,6 @@ class OrderDetailsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-
                 Container(
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.only(top: 16),
@@ -193,7 +193,6 @@ class OrderDetailsScreen extends ConsumerWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
                   ),
-
                   child: Column(
                     children: [
                       // Items
@@ -227,7 +226,8 @@ class OrderDetailsScreen extends ConsumerWidget {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           item.name,
@@ -237,12 +237,37 @@ class OrderDetailsScreen extends ConsumerWidget {
                                             color: Color(0xFF111827),
                                           ),
                                         ),
-                                        Text(
-                                          '${item.boughtQuantity}g',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Color(0xFF6B7280),
-                                          ),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '${item.boughtQuantity} × ${item.value}${item.unit}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Total: ₹${(item.boughtQuantity * item.discountedPrice).toStringAsFixed(0)}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: Color(0xFF6B7280),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -262,7 +287,8 @@ class OrderDetailsScreen extends ConsumerWidget {
                                         '₹${item.price.toStringAsFixed(0)}',
                                         style: const TextStyle(
                                           fontSize: 14,
-                                          decoration: TextDecoration.lineThrough,
+                                          decoration:
+                                              TextDecoration.lineThrough,
                                           color: Color(0xFF6B7280),
                                         ),
                                       ),
@@ -345,7 +371,8 @@ class OrderDetailsScreen extends ConsumerWidget {
                               children: [
                                 const Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       'Total Bill',
@@ -368,13 +395,15 @@ class OrderDetailsScreen extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: [
                                         Text(
                                           '₹${(totalAmount + saving).toStringAsFixed(0)}',
                                           style: const TextStyle(
                                             fontSize: 14,
-                                            decoration: TextDecoration.lineThrough,
+                                            decoration:
+                                                TextDecoration.lineThrough,
                                             color: Color(0xFF6B7280),
                                           ),
                                         ),
@@ -396,7 +425,8 @@ class OrderDetailsScreen extends ConsumerWidget {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary.withOpacity(0.1),
+                                        color:
+                                            AppColors.primary.withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(

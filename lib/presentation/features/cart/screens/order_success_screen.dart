@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../features/orders/providers/orders_provider.dart';
 import '../widgets/success_animation.dart';
 
-class OrderSuccessScreen extends StatelessWidget {
+class OrderSuccessScreen extends ConsumerWidget {
   const OrderSuccessScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -67,7 +69,11 @@ class OrderSuccessScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => context.go('/orders'),
+                  onPressed: () {
+                    // Refresh orders before navigating
+                    ref.read(ordersProvider.notifier).refresh();
+                    context.go('/orders');
+                  },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     side: const BorderSide(color: AppColors.primary),

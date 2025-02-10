@@ -30,6 +30,17 @@ class ProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cartAsync = ref.watch(cartProvider);
+    final isLoading = ref.watch(productLoadingProvider(id));
+
+    // Check if item is in cart and get its quantity
+    final cartItem = cartAsync.valueOrNull?.boughtProductDetailsList
+        .where((item) => item.varietyId == id)
+        .firstOrNull;
+    final isInCart = cartItem != null;
+    final currentQuantity = cartItem?.boughtQuantity ?? 0;
+    final isMaxQuantity = currentQuantity >= 50; // Maximum allowed quantity
+
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
@@ -181,30 +192,32 @@ class ProductCard extends ConsumerWidget {
                             const Spacer(),
                             Consumer(
                               builder: (context, ref, child) {
-                                final isLoading =
-                                    ref.watch(productLoadingProvider(id));
-
                                 return GestureDetector(
-                                  onTap: isLoading
+                                  onTap: (isLoading || isMaxQuantity)
                                       ? null
                                       : () async {
                                           try {
+                                            final newQuantity = isInCart
+                                                ? currentQuantity + 1
+                                                : 1;
                                             await ref
                                                 .read(cartProvider.notifier)
                                                 .updateCart(
                                                   varietyId: id,
-                                                  quantity: 1,
+                                                  quantity: newQuantity,
                                                 );
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
-                                                const SnackBar(
+                                                SnackBar(
                                                   content: Text(
-                                                    'Added to cart',
-                                                    style: TextStyle(
+                                                    isInCart
+                                                        ? 'Updated quantity in cart'
+                                                        : 'Added to cart',
+                                                    style: const TextStyle(
                                                         color: Colors.white),
                                                   ),
-                                                  duration: Duration(
+                                                  duration: const Duration(
                                                       seconds: 2),
                                                   backgroundColor:
                                                       AppColors.primary,
@@ -217,7 +230,7 @@ class ProductCard extends ConsumerWidget {
                                                   .showSnackBar(
                                                 SnackBar(
                                                   content: Text(
-                                                    'Failed to add to cart: ${e.toString()}',
+                                                    'Failed to update cart: ${e.toString()}',
                                                     style: const TextStyle(
                                                         color: Colors.white),
                                                   ),
@@ -232,8 +245,9 @@ class ProductCard extends ConsumerWidget {
                                   child: isCardSmall
                                       ? CircleAvatar(
                                           radius: 16,
-                                          backgroundColor:
-                                              AppColors.iconPrimary,
+                                          backgroundColor: isMaxQuantity
+                                              ? Colors.grey
+                                              : AppColors.iconPrimary,
                                           child: isLoading
                                               ? const SizedBox(
                                                   height: 14,
@@ -244,32 +258,52 @@ class ProductCard extends ConsumerWidget {
                                                     color: Colors.white,
                                                   ),
                                                 )
-                                              : const Icon(
-                                                  Icons
-                                                      .add_shopping_cart_rounded,
-                                                  size: 18,
-                                                  color: Colors.white,
-                                                ),
+                                              : isMaxQuantity
+                                                  ? const Icon(
+                                                      Icons.check,
+                                                      size: 18,
+                                                      color: Colors.white,
+                                                    )
+                                                  : const Icon(
+                                                      Icons
+                                                          .add_shopping_cart_rounded,
+                                                      size: 18,
+                                                      color: Colors.white,
+                                                    ),
                                         )
-                                      : CircleAvatar(
-                                          radius: 18,
-                                          backgroundColor:
-                                              AppColors.iconPrimary,
+                                      : Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isMaxQuantity
+                                                ? Colors.grey
+                                                : AppColors.primary,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
                                           child: isLoading
                                               ? const SizedBox(
-                                                  height: 16,
-                                                  width: 16,
+                                                  height: 14,
+                                                  width: 14,
                                                   child:
                                                       CircularProgressIndicator(
                                                     strokeWidth: 2,
                                                     color: Colors.white,
                                                   ),
                                                 )
-                                              : const Icon(
-                                                  Icons
-                                                      .add_shopping_cart_rounded,
-                                                  size: 24,
-                                                  color: Colors.white,
+                                              : Text(
+                                                  isMaxQuantity
+                                                      ? 'Max Qty'
+                                                      : isInCart
+                                                          ? 'Add More'
+                                                          : 'Add',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                                 ),
                                         ),
                                 );

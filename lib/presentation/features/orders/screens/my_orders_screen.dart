@@ -5,11 +5,23 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/orders_provider.dart';
 
-class MyOrdersScreen extends ConsumerWidget {
+class MyOrdersScreen extends ConsumerStatefulWidget {
   const MyOrdersScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyOrdersScreen> createState() => _MyOrdersScreenState();
+}
+
+class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh orders when screen is loaded
+    Future.microtask(() => ref.read(ordersProvider.notifier).refresh());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ordersAsync = ref.watch(ordersProvider);
 
     return Scaffold(
@@ -19,7 +31,13 @@ class MyOrdersScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF111827)),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/shop');
+            }
+          },
         ),
         title: const Text(
           'My Orders',

@@ -28,6 +28,18 @@ class _ProductDetailsOverlayState extends ConsumerState<ProductDetailsOverlay> {
     final discount =
         ((variety.price - variety.discountPrice) / variety.price * 100).round();
 
+    // Get cart state
+    final cartAsync = ref.watch(cartProvider);
+    final isLoading = ref.watch(productLoadingProvider(variety.id));
+
+    // Check if item is in cart and get its quantity
+    final cartItem = cartAsync.valueOrNull?.boughtProductDetailsList
+        .where((item) => item.varietyId == variety.id)
+        .firstOrNull;
+    final isInCart = cartItem != null;
+    final currentQuantity = cartItem?.boughtQuantity ?? 0;
+    final isMaxQuantity = currentQuantity >= 50; // Maximum allowed quantity
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.zero,
@@ -295,157 +307,119 @@ class _ProductDetailsOverlayState extends ConsumerState<ProductDetailsOverlay> {
                 ),
               ),
             ),
-            // Bottom Cart Section
+            // Bottom Add to Cart Button
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    const BorderRadius.vertical(bottom: Radius.circular(16)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE5E7EB)),
+                ),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${variety.value}${variety.unit}',
+                          '₹${variety.discountPrice.toInt()}',
                           style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
                         ),
-                        Row(
-                          children: [
-                            Text(
-                              '₹${variety.discountPrice}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
+                        if (variety.price > variety.discountPrice)
+                          Text(
+                            '₹${variety.price.toInt()}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                              decoration: TextDecoration.lineThrough,
                             ),
-                            if (discount > 0) ...[
-                              const SizedBox(width: 8),
-                              Text(
-                                '₹${variety.price}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  '$discount% OFF',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                          ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final cartState = ref.watch(cartProvider);
-                      final isLoading = cartState.isLoading;
-
-                      return SizedBox(
-                        height: 44,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: isLoading
-                              ? null
-                              : () async {
-                                  try {
-                                    await ref
-                                        .read(cartProvider.notifier)
-                                        .updateCart(
-                                          varietyId: variety.id,
-                                          quantity: 1,
-                                        );
-                                    if (context.mounted) {
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Added to cart',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
-                                          backgroundColor: AppColors.primary,
-                                          duration: Duration(seconds: 2),
-                                        ),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: (isLoading || isMaxQuantity)
+                            ? null
+                            : () async {
+                                try {
+                                  final newQuantity =
+                                      isInCart ? currentQuantity + 1 : 1;
+                                  await ref
+                                      .read(cartProvider.notifier)
+                                      .updateCart(
+                                        varietyId: variety.id,
+                                        quantity: newQuantity,
                                       );
-                                    }
-                                  } catch (e) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Failed to add to cart: ${e.toString()}',
-                                            style: const TextStyle(
-                                                color: Colors.white),
-                                          ),
-                                          backgroundColor: Colors.red,
-                                          duration: const Duration(seconds: 2),
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isInCart
+                                              ? 'Updated quantity in cart'
+                                              : 'Added to cart',
+                                          style: const TextStyle(
+                                              color: Colors.white),
                                         ),
-                                      );
-                                    }
+                                        duration: const Duration(seconds: 2),
+                                        backgroundColor: AppColors.primary,
+                                      ),
+                                    );
                                   }
-                                },
-                          child: isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'Add to Cart',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Failed to update cart: ${e.toString()}',
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                        duration: const Duration(seconds: 2),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isMaxQuantity ? Colors.grey : AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      );
-                    },
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                isMaxQuantity
+                                    ? 'Max Qty'
+                                    : isInCart
+                                        ? 'Add More'
+                                        : 'Add to Cart',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
                   ),
                 ],
               ),
